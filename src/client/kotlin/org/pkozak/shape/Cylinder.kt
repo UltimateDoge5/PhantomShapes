@@ -13,6 +13,7 @@ class Cylinder(
     var radius: Int,
     var height: Int
 ) : Shape() {
+    override val name = "Cylinder ${pos.x}, ${pos.y}, ${pos.z}"
     private val positions = mutableSetOf<Vec3d>()
 
     override fun render(): MutableSet<Vec3d> {
@@ -55,7 +56,6 @@ class Cylinder(
                 }
             }
         }
-
 
         return positions
     }

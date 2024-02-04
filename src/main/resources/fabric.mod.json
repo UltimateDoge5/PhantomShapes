@@ -5,12 +5,8 @@
 	"name": "PhantomShapes",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
-		"Me!"
+		"SnailMan"
 	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
 	"license": "CC0-1.0",
 	"icon": "assets/phantomshapes/icon.png",
 	"environment": "*",
@@ -26,6 +22,12 @@
 				"value": "org.pkozak.PhantomShapesClient",
 				"adapter": "kotlin"
 			}
+		],
+		"modmenu": [
+			{
+				"value": "org.pkozak.ModMenuIntegration",
+				"adapter": "kotlin"
+			}
 		]
 	},
 	"mixins": [
@@ -35,14 +37,14 @@
 			"environment": "client"
 		}
 	],
+	"recommends": {
+		"modmenu": ">=9.0.0"
+	},
 	"depends": {
 		"fabricloader": ">=0.15.6",
 		"minecraft": "~1.20.4",
 		"java": ">=17",
 		"fabric-api": "*",
 		"fabric-language-kotlin": ">=1.9.22"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }
