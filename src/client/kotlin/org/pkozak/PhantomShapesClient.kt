@@ -33,10 +33,10 @@ object PhantomShapesClient : ClientModInitializer {
         )
     )
 
-    override fun onInitializeClient() { 
-        shapes.add(Cube(Color.RED, Vec3d(0.0, 0.0, 0.0), false, Vec3d(2.0, 2.0, 2.0)))
-        shapes.add(Sphere(Color.BLUE, Vec3d(0.0, -20.0, 0.0), false, 5))
-        shapes.add(Cylinder(Color.GREEN, Vec3d(20.0, -20.0, 0.0), 5, 10))
+    override fun onInitializeClient() {
+        shapes.add(Cube("Ramiel", Color.RED, Vec3d(0.0, 0.0, 0.0), false, Vec3d(2.0, 2.0, 2.0)))
+        shapes.add(Sphere("Loginus", Color.BLUE, Vec3d(0.0, -20.0, 0.0), false, 5))
+        shapes.add(Cylinder("Cassius", Color.GREEN, Vec3d(20.0, -20.0, 0.0), 5, 10))
 
         RenderEvents.WORLD.register { matrixStack -> onWorldRendered(matrixStack) }
 

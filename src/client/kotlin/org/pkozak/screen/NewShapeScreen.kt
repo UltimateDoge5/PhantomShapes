@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.Text
+import net.minecraft.util.Colors
 import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import org.pkozak.PhantomShapesClient.logger
@@ -32,6 +33,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
     private var radiusInput: TextFieldWidget? = null
 
     private var confirmBtn: ButtonWidget? = null
+    private var errorText = ""
 
     private var shapeType: ShapeType = ShapeType.CUBE
 
@@ -100,15 +102,27 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
             .build()
 
         widthInput = TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Width"))
+        widthInput!!.setPlaceholder(Text.literal("Width"))
+        widthInput!!.text = "3"
+
         heightInput =
             TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20 + 54, 100, 50, 20, Text.literal("Height"))
+        heightInput!!.setPlaceholder(Text.literal("Height"))
+        heightInput!!.text = "3"
+
         depthInput =
             TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20 + 108, 100, 50, 20, Text.literal("Depth"))
+        depthInput!!.setPlaceholder(Text.literal("Depth"))
+        depthInput!!.text = "3"
 
         radiusInput =
             TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Radius"))
+        radiusInput!!.setPlaceholder(Text.literal("Radius"))
+        radiusInput!!.text = "5"
 
-        showDimensionInputs()
+        addDrawableChild(widthInput)
+        addDrawableChild(heightInput)
+        addDrawableChild(depthInput)
         addDrawableChild(confirmBtn)
         addDrawableChild(shapeNameInput)
         addDrawableChild(shapeTypeInput)
@@ -158,7 +172,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
         )
 
         // Render shape color
-        drawColor(context)
+        drawColorBox(context)
 
         context.drawText(
             textRenderer,
@@ -169,8 +183,8 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
             true
         )
 
-        when (shapeTypeInput!!.message.asTruncatedString(8).lowercase()) {
-            "cube" -> {
+        when (shapeType) {
+            ShapeType.CUBE -> {
                 context.drawText(
                     textRenderer,
                     "Dimensions",
@@ -181,7 +195,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
                 )
             }
 
-            "sphere" -> {
+            ShapeType.SPHERE -> {
                 context.drawText(
                     textRenderer,
                     "Radius",
@@ -192,7 +206,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
                 )
             }
 
-            "cylinder" -> {
+            ShapeType.CYLINDER -> {
                 context.drawText(
                     textRenderer,
                     "Radius",
@@ -211,10 +225,29 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
                     true
                 )
             }
+
+            ShapeType.TUNNEL -> TODO()
+            ShapeType.CONE -> TODO()
+            ShapeType.PYRAMID -> TODO()
         }
+
+        validateShape()
+
+        if (errorText.isNotEmpty()) {
+            context.drawText(
+                textRenderer,
+                errorText,
+                width / 3 + 108 + 20,
+                152,
+                Colors.LIGHT_RED,
+                true
+            )
+        }
+
+        confirmBtn!!.active = errorText.isEmpty()
     }
 
-    private fun drawColor(context: DrawContext) {
+    private fun drawColorBox(context: DrawContext) {
         context.drawBorder(blueInput!!.x + 54, blueInput!!.y, 20, 20, ColorHelper.Argb.getArgb(200, 255, 255, 255))
 
         if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
@@ -226,6 +259,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
     }
 
     private fun createShape() {
+        val name = shapeNameInput!!.text
         val x = xCoordsInput!!.text.toDouble()
         val y = yCoordsInput!!.text.toDouble()
         val z = zCoordsInput!!.text.toDouble()
@@ -233,36 +267,103 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
         val pos = Vec3d(x, y, z)
         val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
 
-        val shape = when (shapeTypeInput!!.message.asTruncatedString(8).lowercase()) {
-            "cube" -> {
+        val shape = when (this.shapeType) {
+            ShapeType.CUBE -> {
                 val width = widthInput!!.text.toDouble()
                 val height = heightInput!!.text.toDouble()
                 val depth = depthInput!!.text.toDouble()
                 val dimensions = Vec3d(width, height, depth)
-                Cube(color, pos, true, dimensions)
+                Cube(name, color, pos, true, dimensions)
             }
 
-            "sphere" -> {
+            ShapeType.SPHERE -> {
                 val radius = radiusInput!!.text.toInt()
-                Sphere(color, pos, true, radius)
+                Sphere(name, color, pos, true, radius)
             }
 
-            "cylinder" -> {
+            ShapeType.CYLINDER -> {
                 val radius = radiusInput!!.text.toInt()
                 val height = heightInput!!.text.toInt()
-                Cylinder(color, pos, radius, height)
+                Cylinder(name, color, pos, radius, height)
             }
 
             else -> throw IllegalArgumentException("Invalid shape type")
         }
 
         parent.addShape(shape)
+        close()
+    }
+
+    private fun validateShape() {
+        if (shapeNameInput!!.text.isEmpty()) {
+            errorText = "Shape name cannot be empty"
+            return
+        }
+
+        if (shapeNameInput!!.text.length > 16) {
+            errorText = "Shape name cannot be longer than 16 characters"
+            return
+        }
+
+        if (parent.shapes.any { it.name == shapeNameInput!!.text }) {
+            errorText = "Shape with this name already exists"
+            return
+        }
+
+        if (xCoordsInput!!.text.isEmpty() || yCoordsInput!!.text.isEmpty() || zCoordsInput!!.text.isEmpty()) {
+            errorText = "Coordinates cannot be empty"
+            return
+        }
+
+        if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
+            errorText = "Color cannot be empty"
+            return
+        }
+
+        if (shapeType == ShapeType.CUBE) {
+            if (widthInput!!.text.isEmpty() || heightInput!!.text.isEmpty() || depthInput!!.text.isEmpty()) {
+                errorText = "Dimensions cannot be empty"
+                return
+            }
+
+            if (widthInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0 || depthInput!!.text.toInt() <= 0) {
+                errorText = "Dimensions must be greater than 0"
+                return
+            }
+        }
+
+        if (shapeType == ShapeType.SPHERE) {
+            if (radiusInput!!.text.isEmpty()) {
+                errorText = "Radius cannot be empty"
+                return
+            }
+
+            if (radiusInput!!.text.toInt() <= 0) {
+                errorText = "Radius must be greater than 0"
+                return
+            }
+        }
+
+        if (shapeType == ShapeType.CYLINDER) {
+            if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
+                errorText = "Radius and height cannot be empty"
+                return
+            }
+
+            if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
+                errorText = "Radius and height must be greater than 0"
+                return
+            }
+        }
+
+        errorText = ""
     }
 
     private fun onShapeTypeChange() {
         when (this.shapeType) {
             ShapeType.CUBE -> {
-                showDimensionInputs()
+                addDrawableChild(widthInput)
+                addDrawableChild(depthInput)
                 remove(radiusInput)
             }
 
@@ -272,19 +373,11 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
             }
 
             ShapeType.CYLINDER -> {
-                hideDimensionInputs()
-                addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
             }
 
             else -> throw IllegalArgumentException("Invalid shape type")
         }
-    }
-
-    private fun showDimensionInputs() {
-        addDrawableChild(widthInput)
-        addDrawableChild(heightInput)
-        addDrawableChild(depthInput)
     }
 
     private fun hideDimensionInputs() {

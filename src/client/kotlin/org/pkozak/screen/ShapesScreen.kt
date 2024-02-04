@@ -18,12 +18,12 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     private var shapeListWidget: ShapeListWidget? = null
 
     override fun init() {
-        shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 20, shapes)
+        shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 22, shapes)
         addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(NewShapeScreen(this)) }
-            .dimensions(width / 2 - 205, 20, 200, 20)
+            .dimensions(width / 2 - 205, height - 40, 200, 20)
             .tooltip(Tooltip.of(Text.literal("Create a new phantom shape"))).build()
         closeBtn = ButtonWidget.builder(Text.literal("Close")) { close() }
-            .dimensions(width / 2 + 5, 20, 200, 20).build()
+            .dimensions(width / 2 + 5, height - 40, 200, 20).build()
 
         addDrawableChild(addShapeBtn)
         addDrawableChild(closeBtn)
@@ -34,6 +34,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
         shapeListWidget!!.render(context, mouseX, mouseY, delta)
+        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, Color.WHITE.rgb)
     }
 
     override fun close() {

@@ -9,12 +9,12 @@ import kotlin.math.ceil
 
 
 class Cylinder(
+    override val name: String,
     override var color: Color,
     override var pos: Vec3d,
     var radius: Int,
     var height: Int
 ) : Shape() {
-    override val name = "Cylinder ${pos.x}, ${pos.y}, ${pos.z}"
     override val type = ShapeType.CYLINDER
     
     private val positions = mutableSetOf<Vec3d>()

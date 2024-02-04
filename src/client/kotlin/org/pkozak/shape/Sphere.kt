@@ -9,13 +9,13 @@ import java.awt.Color
 import kotlin.math.ceil
 
 class Sphere(
+    override val name: String,
     override var color: Color,
     override var pos: Vec3d,
     filled: Boolean,
     radius: Int
 ) :
     Shape() {
-    override val name = "Sphere ${pos.x}, ${pos.y}, ${pos.z}"
     override val type = ShapeType.SPHERE
 
     private var radius: Int = radius

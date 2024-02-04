@@ -3,11 +3,11 @@
 	"id": "phantomshapes",
 	"version": "${version}",
 	"name": "PhantomShapes",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Mod for visualizing phantom shapes like cubes and spheres in Minecraft to aid in building.",
 	"authors": [
 		"SnailMan"
 	],
-	"license": "CC0-1.0",
+	"license": "GPL-3.0",
 	"icon": "assets/phantomshapes/icon.png",
 	"environment": "*",
 	"entrypoints": {
