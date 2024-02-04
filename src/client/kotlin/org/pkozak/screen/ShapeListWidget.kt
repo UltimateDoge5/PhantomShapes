@@ -1,6 +1,5 @@
 package org.pkozak.screen
 
-import com.google.common.collect.Lists
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.widget.ElementListWidget
 import org.pkozak.Shape
@@ -18,6 +17,7 @@ class ShapeListWidget(
     private val shapeListEntries: MutableList<ShapeListEntry> = mutableListOf()
 
     init {
+        this.setRenderBackground(false)
         for (shape in shapes) {
             addEntry(ShapeListEntry(this, shape, client))
         }

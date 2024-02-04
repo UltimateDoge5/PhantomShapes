@@ -1,10 +1,11 @@
 package org.pkozak
 
+import net.minecraft.util.TranslatableOption
+import net.minecraft.util.function.ValueLists
+import net.minecraft.util.function.ValueLists.OutOfBoundsHandling
 import net.minecraft.util.math.Vec3d
-import org.pkozak.PhantomShapesClient.logger
 import java.awt.Color
-import kotlin.math.abs
-import kotlin.math.max
+import java.util.function.IntFunction
 
 abstract class Shape {
     abstract var color: Color
@@ -139,5 +140,5 @@ abstract class Shape {
 
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, CONE, PYRAMID
+    CUBE, SPHERE, CYLINDER, CONE, PYRAMID;
 }

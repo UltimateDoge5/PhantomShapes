@@ -4,7 +4,6 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.Element
 import net.minecraft.client.gui.Selectable
-import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.ElementListWidget
 import net.minecraft.text.Text
@@ -65,14 +64,14 @@ class ShapeListEntry(
 
         // Render the buttons
         if (hovered) {
-            deleteBtn!!.y = y
+            deleteBtn!!.y = y + 1
             deleteBtn!!.x = x + entryWidth - 25
-            deleteBtn!!.height = entryHeight
+            deleteBtn!!.height = entryHeight - 2
             deleteBtn!!.render(context, mouseX, mouseY, tickDelta)
 
-            editBtn!!.y = y
+            editBtn!!.y = y + 1
             editBtn!!.x = x + entryWidth - 75
-            editBtn!!.height = entryHeight
+            editBtn!!.height = entryHeight - 2
             editBtn!!.render(context, mouseX, mouseY, tickDelta)
 
         }
