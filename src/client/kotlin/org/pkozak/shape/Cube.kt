@@ -2,11 +2,14 @@ package org.pkozak.shape
 
 import net.minecraft.util.math.Vec3d
 import org.pkozak.Shape
+import org.pkozak.ShapeType
 import java.awt.Color
 
 class Cube(override var color: Color, override var pos: Vec3d, filled: Boolean, dimensions: Vec3d
 ) : Shape() {
     override val name = "Cube ${pos.x}, ${pos.y}, ${pos.z}"
+    override val type = ShapeType.CUBE
+
     private var dimensions: Vec3d = dimensions
         set(value) {
             field = value

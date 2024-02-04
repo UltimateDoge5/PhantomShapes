@@ -3,6 +3,7 @@ package org.pkozak.shape
 import com.google.common.math.IntMath.pow
 import net.minecraft.util.math.Vec3d
 import org.pkozak.Shape
+import org.pkozak.ShapeType
 import org.pkozak.Util.Companion.lengthSq
 import java.awt.Color
 import kotlin.math.ceil
@@ -15,6 +16,8 @@ class Sphere(
 ) :
     Shape() {
     override val name = "Sphere ${pos.x}, ${pos.y}, ${pos.z}"
+    override val type = ShapeType.SPHERE
+
     private var radius: Int = radius
         set(value) {
             field = value

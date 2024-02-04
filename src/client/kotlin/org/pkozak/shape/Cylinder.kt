@@ -2,6 +2,7 @@ package org.pkozak.shape
 
 import net.minecraft.util.math.Vec3d
 import org.pkozak.Shape
+import org.pkozak.ShapeType
 import org.pkozak.Util.Companion.lengthSq
 import java.awt.Color
 import kotlin.math.ceil
@@ -14,6 +15,8 @@ class Cylinder(
     var height: Int
 ) : Shape() {
     override val name = "Cylinder ${pos.x}, ${pos.y}, ${pos.z}"
+    override val type = ShapeType.CYLINDER
+    
     private val positions = mutableSetOf<Vec3d>()
 
     override fun render(): MutableSet<Vec3d> {
