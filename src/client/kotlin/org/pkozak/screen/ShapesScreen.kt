@@ -18,8 +18,8 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     private var shapeListWidget: ShapeListWidget? = null
 
     override fun init() {
-        shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 22, shapes)
-        addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(NewShapeScreen(this)) }
+        shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 24, shapes)
+        addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(NewShapeScreen(this, null)) }
             .dimensions(width / 2 - 205, height - 40, 200, 20)
             .tooltip(Tooltip.of(Text.literal("Create a new phantom shape"))).build()
         closeBtn = ButtonWidget.builder(Text.literal("Close")) { close() }

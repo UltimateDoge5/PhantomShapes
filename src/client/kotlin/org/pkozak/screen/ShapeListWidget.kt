@@ -5,7 +5,7 @@ import net.minecraft.client.gui.widget.ElementListWidget
 import org.pkozak.Shape
 
 class ShapeListWidget(
-    private val parent: ShapesScreen,
+    internal val parent: ShapesScreen,
     client: MinecraftClient,
     width: Int,
     height: Int,

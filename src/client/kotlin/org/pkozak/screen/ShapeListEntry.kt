@@ -12,12 +12,11 @@ import net.minecraft.util.math.ColorHelper
 import org.pkozak.Shape
 
 class ShapeListEntry(
-    private val parent: ShapeListWidget,
+    private val widget: ShapeListWidget,
     internal val shape: Shape,
     private val client: MinecraftClient
 ) :
     ElementListWidget.Entry<ShapeListEntry>() {
-    private val LIGHT_GRAY_COLOR: Int = ColorHelper.Argb.getArgb(140, 255, 255, 255)
     private var deleteBtn: ButtonWidget? = null
     private var editBtn: ButtonWidget? = null
     private var hovered = false
@@ -26,7 +25,7 @@ class ShapeListEntry(
         deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
             .dimensions(0, 0, 50, 32).build()
 
-        editBtn = ButtonWidget.builder(Text.literal("Edit")) { }
+        editBtn = ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(NewShapeScreen(widget.parent, shape)) }
             .dimensions(0, 0, 50, 32).build()
     }
 
@@ -42,6 +41,7 @@ class ShapeListEntry(
         hovered: Boolean,
         tickDelta: Float
     ) {
+        // Mojang does that in widgets, so I'll do it too
         val l = y + (entryHeight - client.textRenderer.fontHeight) / 2
         val i = x + 4
         val j = y + (entryHeight - 24) / 2
@@ -54,31 +54,28 @@ class ShapeListEntry(
             shape.name,
             k,
             l,
-            LIGHT_GRAY_COLOR,
+            0xFFFFFF,
             false
         )
 
         // Render shape color
-        context.drawBorder(i, j, 16, 16, LIGHT_GRAY_COLOR)
+        context.drawBorder(i, j, 16, 16, ColorHelper.Argb.getArgb(140, 255, 255, 255))
         context.fill(i + 1, j + 1, i + 15, j + 15, shape.color.rgb)
 
-        // Render the buttons
-        if (hovered) {
-            deleteBtn!!.y = y + 1
-            deleteBtn!!.x = x + entryWidth - 25
-            deleteBtn!!.height = entryHeight - 2
-            deleteBtn!!.render(context, mouseX, mouseY, tickDelta)
+        deleteBtn!!.y = y + 1
+        deleteBtn!!.x = x + entryWidth - 25
+        deleteBtn!!.height = entryHeight - 2
+        deleteBtn!!.render(context, mouseX, mouseY, tickDelta)
 
-            editBtn!!.y = y + 1
-            editBtn!!.x = x + entryWidth - 75
-            editBtn!!.height = entryHeight - 2
-            editBtn!!.render(context, mouseX, mouseY, tickDelta)
+        editBtn!!.y = y + 1
+        editBtn!!.x = x + entryWidth - 75 - 4
+        editBtn!!.height = entryHeight - 2
+        editBtn!!.render(context, mouseX, mouseY, tickDelta)
 
-        }
     }
 
     private fun delete() {
-        parent.removeEntry(this)
+        widget.removeEntry(this)
     }
 
     override fun children(): MutableList<out Element> {

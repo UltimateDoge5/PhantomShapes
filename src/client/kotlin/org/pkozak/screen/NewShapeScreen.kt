@@ -8,14 +8,15 @@ import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
-import org.pkozak.PhantomShapesClient.logger
+import org.pkozak.Shape
 import org.pkozak.ShapeType
 import org.pkozak.shape.Cube
 import org.pkozak.shape.Cylinder
 import org.pkozak.shape.Sphere
 import java.awt.Color
 
-class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Shapes manager")) {
+class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
+    Screen(Text.literal("Shapes manager")) {
     private var shapeNameInput: TextFieldWidget? = null
     private var shapeTypeInput: ButtonWidget? = null // OptionListWidget is too complex and not worth the time
 
@@ -74,12 +75,11 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
         blueInput!!.setPlaceholder(Text.literal("Blue"))
         blueInput!!.text = "255"
 
-        confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) { createShape() }
+        confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) { createOrEditShape() }
             .dimensions(width / 2 - 100, 180, 200, 20).build()
 
 
         shapeTypeInput = ButtonWidget.builder(Text.literal("Cube")) {
-            logger.info("Shape type changed ${shapeTypeInput!!.message.asTruncatedString(8).lowercase()}")
             when (shapeTypeInput!!.message.asTruncatedString(8).lowercase()) {
                 "cube" -> {
                     shapeTypeInput!!.message = Text.literal("Sphere")
@@ -98,8 +98,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
             }
             onShapeTypeChange()
         }
-            .dimensions(width / 3 + 108 + 20, 60, 60, 20)
-            .build()
+            .dimensions(width / 3 + 108 + 20, 60, 60, 20).build()
 
         widthInput = TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Width"))
         widthInput!!.setPlaceholder(Text.literal("Width"))
@@ -119,6 +118,21 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
             TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Radius"))
         radiusInput!!.setPlaceholder(Text.literal("Radius"))
         radiusInput!!.text = "5"
+
+        // If shape is not null, it means we are editing an existing shape
+        if (editedShape != null) {
+            shapeNameInput!!.text = editedShape.name
+            xCoordsInput!!.text = editedShape.pos.x.toString()
+            yCoordsInput!!.text = editedShape.pos.y.toString()
+            zCoordsInput!!.text = editedShape.pos.z.toString()
+
+            redInput!!.text = editedShape.color.red.toString()
+            greenInput!!.text = editedShape.color.green.toString()
+            blueInput!!.text = editedShape.color.blue.toString()
+
+            shapeType = editedShape.type
+            onShapeTypeChange()
+        }
 
         addDrawableChild(widthInput)
         addDrawableChild(heightInput)
@@ -258,7 +272,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
         context.fill(blueInput!!.x + 55, blueInput!!.y + 1, blueInput!!.x + 55 + 18, blueInput!!.y + 19, color.rgb)
     }
 
-    private fun createShape() {
+    private fun createOrEditShape() {
         val name = shapeNameInput!!.text
         val x = xCoordsInput!!.text.toDouble()
         val y = yCoordsInput!!.text.toDouble()
@@ -267,7 +281,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
         val pos = Vec3d(x, y, z)
         val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
 
-        val shape = when (this.shapeType) {
+        val newShape = when (this.shapeType) {
             ShapeType.CUBE -> {
                 val width = widthInput!!.text.toDouble()
                 val height = heightInput!!.text.toDouble()
@@ -290,7 +304,12 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
             else -> throw IllegalArgumentException("Invalid shape type")
         }
 
-        parent.addShape(shape)
+        if (editedShape !== null) {
+            val shapeIndex = parent.shapes.indexOfFirst { it.name == editedShape.name }
+            parent.shapes[shapeIndex] = newShape
+        } else {
+            parent.addShape(newShape)
+        }
         close()
     }
 
@@ -305,7 +324,7 @@ class NewShapeScreen(private val parent: ShapesScreen) : Screen(Text.literal("Sh
             return
         }
 
-        if (parent.shapes.any { it.name == shapeNameInput!!.text }) {
+        if (editedShape == null && parent.shapes.any { it.name == shapeNameInput!!.text }) {
             errorText = "Shape with this name already exists"
             return
         }
