@@ -1,12 +1,13 @@
 package org.pkozak.shape
 
+import kotlinx.serialization.json.*
 import net.minecraft.util.math.Vec3d
 import org.pkozak.Shape
 import org.pkozak.ShapeType
 import java.awt.Color
 
 class Cube(
-    override val name: String, override var color: Color, override var pos: Vec3d, filled: Boolean, dimensions: Vec3d
+    override val name: String, override var color: Color, override var pos: Vec3d, dimensions: Vec3d
 ) : Shape() {
     override val type = ShapeType.CUBE
 
@@ -42,5 +43,25 @@ class Cube(
         }
 
         return positions
+    }
+
+    override fun toJsonObject(): JsonObject {
+        val json = buildJsonObject {
+            put("name", name)
+            put("color", color.rgb)
+            put("pos", buildJsonObject {
+                put("x", pos.x)
+                put("y", pos.y)
+                put("z", pos.z)
+            })
+            put("dimensions", buildJsonObject {
+                put("x", dimensions.x)
+                put("y", dimensions.y)
+                put("z", dimensions.z)
+            })
+            put("filled", filled)
+        }
+
+        return json
     }
 }

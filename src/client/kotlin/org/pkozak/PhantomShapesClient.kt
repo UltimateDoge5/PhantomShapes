@@ -22,7 +22,6 @@ import java.awt.Color
 object PhantomShapesClient : ClientModInitializer {
     val logger = LoggerFactory.getLogger("phantomshapes")
     private var shapes = mutableListOf<Shape>()
-    //private var shape_cache = mutableMapOf<Shape, MutableSet<Slice>>()
 
     private var keyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
@@ -34,8 +33,8 @@ object PhantomShapesClient : ClientModInitializer {
     )
 
     override fun onInitializeClient() {
-        shapes.add(Cube("Ramiel", Color.RED, Vec3d(0.0, 0.0, 0.0), false, Vec3d(2.0, 2.0, 2.0)))
-        shapes.add(Sphere("Loginus", Color.BLUE, Vec3d(0.0, -20.0, 0.0), false, 5))
+        shapes.add(Cube("Ramiel", Color.RED, Vec3d(0.0, 0.0, 0.0), Vec3d(2.0, 2.0, 2.0)))
+        shapes.add(Sphere("Loginus", Color.BLUE, Vec3d(0.0, -20.0, 0.0),5))
         shapes.add(Cylinder("Cassius", Color.GREEN, Vec3d(20.0, -20.0, 0.0), 5, 10))
 
         RenderEvents.WORLD.register { matrixStack -> onWorldRendered(matrixStack) }
@@ -50,6 +49,7 @@ object PhantomShapesClient : ClientModInitializer {
     // Render shapes from the cache
     private fun onWorldRendered(matrix: MatrixStack) {
         for (shape in shapes) {
+            if (!shape.enabled) continue
             val cubes = shape.render()
             val fillColor = Color(shape.color.red, shape.color.green, shape.color.blue, 50)
             for (cube in cubes) {

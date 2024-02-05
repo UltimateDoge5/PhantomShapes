@@ -287,12 +287,12 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 val height = heightInput!!.text.toDouble()
                 val depth = depthInput!!.text.toDouble()
                 val dimensions = Vec3d(width, height, depth)
-                Cube(name, color, pos, true, dimensions)
+                Cube(name, color, pos, dimensions)
             }
 
             ShapeType.SPHERE -> {
                 val radius = radiusInput!!.text.toInt()
-                Sphere(name, color, pos, true, radius)
+                Sphere(name, color, pos, radius)
             }
 
             ShapeType.CYLINDER -> {
@@ -306,6 +306,10 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
 
         if (editedShape !== null) {
             val shapeIndex = parent.shapes.indexOfFirst { it.name == editedShape.name }
+            if (shapeIndex == -1) {
+                errorText = "Shape could not be edited"
+                return
+            }
             parent.shapes[shapeIndex] = newShape
         } else {
             parent.addShape(newShape)

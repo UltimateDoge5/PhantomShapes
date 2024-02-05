@@ -1,6 +1,8 @@
 package org.pkozak.shape
 
-import com.google.common.math.IntMath.pow
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
 import org.pkozak.Shape
 import org.pkozak.ShapeType
@@ -12,7 +14,6 @@ class Sphere(
     override val name: String,
     override var color: Color,
     override var pos: Vec3d,
-    filled: Boolean,
     radius: Int
 ) :
     Shape() {
@@ -70,7 +71,6 @@ class Sphere(
                         }
                     }
 
-
                     positions.add(Vec3d(pos.x + x, pos.y + y, pos.z + z))
                     positions.add(Vec3d(pos.x - x, pos.y + y, pos.z + z))
                     positions.add(Vec3d(pos.x + x, pos.y - y, pos.z + z))
@@ -84,5 +84,21 @@ class Sphere(
         }
 
         return positions
+    }
+
+    override fun toJsonObject(): JsonObject {
+        val json = buildJsonObject {
+            put("name", name)
+            put("color", color.rgb)
+            put("pos", buildJsonObject {
+                put("x", pos.x)
+                put("y", pos.y)
+                put("z", pos.z)
+            })
+            put("radius", radius)
+            put("filled", filled)
+        }
+
+        return json
     }
 }

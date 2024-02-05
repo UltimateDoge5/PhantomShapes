@@ -2,7 +2,7 @@ plugins {
 	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
   	id "org.jetbrains.kotlin.jvm" version "1.9.22"
-	id "com.virgo47.ClasspathJar" version "1.0.0"
+	id "org.jetbrains.kotlin.plugin.serialization" version "1.9.22"
 }
 
 version = project.mod_version
@@ -58,6 +58,9 @@ dependencies {
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}", {
 		exclude module: 'fabric-api'
 	}
+
+	modImplementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
+	implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 }
 

@@ -19,6 +19,7 @@ class ShapeListEntry(
     ElementListWidget.Entry<ShapeListEntry>() {
     private var deleteBtn: ButtonWidget? = null
     private var editBtn: ButtonWidget? = null
+    private var toggleBtn: ButtonWidget? = null
     private var hovered = false
 
     init {
@@ -26,6 +27,9 @@ class ShapeListEntry(
             .dimensions(0, 0, 50, 32).build()
 
         editBtn = ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(NewShapeScreen(widget.parent, shape)) }
+            .dimensions(0, 0, 50, 32).build()
+
+        toggleBtn = ButtonWidget.builder(Text.literal("Toggle")) { shape.toggleVisibility() }
             .dimensions(0, 0, 50, 32).build()
     }
 
@@ -71,7 +75,6 @@ class ShapeListEntry(
         editBtn!!.x = x + entryWidth - 75 - 4
         editBtn!!.height = entryHeight - 2
         editBtn!!.render(context, mouseX, mouseY, tickDelta)
-
     }
 
     private fun delete() {
