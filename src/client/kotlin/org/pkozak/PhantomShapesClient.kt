@@ -5,10 +5,12 @@ import me.x150.renderer.render.Renderer3d
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.client.world.ClientWorld
 import net.minecraft.util.math.Vec3d
 import org.lwjgl.glfw.GLFW
 import org.pkozak.screen.ShapesScreen
@@ -33,11 +35,15 @@ object PhantomShapesClient : ClientModInitializer {
     )
 
     override fun onInitializeClient() {
-        shapes.add(Cube("Ramiel", Color.RED, Vec3d(0.0, 0.0, 0.0), Vec3d(2.0, 2.0, 2.0)))
-        shapes.add(Sphere("Loginus", Color.BLUE, Vec3d(0.0, -20.0, 0.0),5))
-        shapes.add(Cylinder("Cassius", Color.GREEN, Vec3d(20.0, -20.0, 0.0), 5, 10))
-
         RenderEvents.WORLD.register { matrixStack -> onWorldRendered(matrixStack) }
+
+        ServerWorldEvents.LOAD.register(ServerWorldEvents.Load { _, _ ->
+            try {
+                shapes = SavedDataManager.loadShapes().toMutableList()
+            } catch (e: Exception) {
+                logger.error("Failed to load shapes from file", e)
+            }
+        })
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
             while (keyBinding.wasPressed()) {

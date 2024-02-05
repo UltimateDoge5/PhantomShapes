@@ -1,6 +1,6 @@
 package org.pkozak
 
-class Util {
+class MathUtil {
     companion object {
         fun lengthSq(x: Double, y: Double, z: Double): Double {
             return (x * x) + (y * y) + (z * z)

@@ -1,21 +1,68 @@
 package org.pkozak
 
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.jsonObject
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.WorldSavePath
 import org.pkozak.PhantomShapesClient.logger
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
+import java.io.*
 
 
 class SavedDataManager {
     companion object {
         fun loadShapes(): List<Shape> {
-            // TODO
-            return emptyList()
+            val client = MinecraftClient.getInstance()
+            val shapes = mutableListOf<Shape>()
+
+            // Single player is a local server
+            if (client.isInSingleplayer) {
+                val saveName = client.server?.getSavePath(WorldSavePath.ROOT)?.parent?.fileName
+                if (saveName == null) {
+                    logger.error("Failed to load shapes. Save name was null")
+                    return shapes
+                }
+
+                val jsonString = readFromFile("$saveName.json")
+                if (jsonString != null) {
+                    val jsonArray = Json.decodeFromString(JsonArray.serializer(), jsonString)
+                    jsonArray.forEach { shapes.add(Shape.fromJsonObject(it.jsonObject)) }
+                }
+            } else {
+                val serverAddress = client.currentServerEntry?.address
+                if (serverAddress == null) {
+                    logger.error("Failed to load shapes. Server address was null")
+                    return shapes
+                }
+
+                val jsonString = readFromFile("$serverAddress.json")
+                if (jsonString != null) {
+                    val jsonArray = Json.decodeFromString(JsonArray.serializer(), jsonString)
+                    jsonArray.forEach { shapes.add(Shape.fromJsonObject(it.jsonObject)) }
+                }
+            }
+
+            return shapes
+        }
+
+        private fun readFromFile(s: String): String? {
+            val dir = FabricLoader.getInstance().configDir.resolve("shapes")
+            val file = File(dir.toFile(), s)
+
+            if (!file.exists()) {
+                return null
+            }
+
+            return try {
+                val inputStream: InputStream = FileInputStream(file)
+                val text = inputStream.bufferedReader().use { it.readText() }
+                text
+            } catch (e: IOException) {
+                logger.error("Failed to read from file: $s")
+                logger.error(e.message)
+                null
+            }
         }
 
         fun saveShapes(shapes: List<Shape>) {

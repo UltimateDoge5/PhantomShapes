@@ -48,6 +48,7 @@ class Cube(
     override fun toJsonObject(): JsonObject {
         val json = buildJsonObject {
             put("name", name)
+            put("type", type.toString())
             put("color", color.rgb)
             put("pos", buildJsonObject {
                 put("x", pos.x)

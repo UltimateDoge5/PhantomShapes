@@ -1,7 +1,9 @@
 package org.pkozak
 
+import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Vec3d
+import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.shape.Cube
 import org.pkozak.shape.Cylinder
 import org.pkozak.shape.Sphere
@@ -26,9 +28,11 @@ abstract class Shape {
 
     companion object {
         fun fromJsonObject(json: JsonObject): Shape {
-            return when (ShapeType.valueOf(json["type"].toString())) {
+            val type = ShapeType.valueOf(json["type"].toString().replace("\"", "")) // For some reason, the type is wrapped in quotes
+            val name = json["name"].toString().replace("\"", "") // Same here
+
+            return when (type) {
                 ShapeType.CUBE -> {
-                    val name = json["name"].toString()
                     val color = Color(json["color"].toString().toInt())
                     val pos = Vec3d(
                         (json["pos"] as JsonObject)["x"].toString().toDouble(),
@@ -48,7 +52,6 @@ abstract class Shape {
                 }
 
                 ShapeType.SPHERE -> {
-                    val name = json["name"].toString()
                     val color = Color(json["color"].toString().toInt())
                     val pos = Vec3d(
                         (json["pos"] as JsonObject)["x"].toString().toDouble(),
@@ -64,7 +67,6 @@ abstract class Shape {
                 }
 
                 ShapeType.CYLINDER -> {
-                    val name = json["name"].toString()
                     val color = Color(json["color"].toString().toInt())
                     val pos = Vec3d(
                         (json["pos"] as JsonObject)["x"].toString().toDouble(),

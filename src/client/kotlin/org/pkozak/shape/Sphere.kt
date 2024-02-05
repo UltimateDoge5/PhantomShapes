@@ -6,7 +6,7 @@ import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
 import org.pkozak.Shape
 import org.pkozak.ShapeType
-import org.pkozak.Util.Companion.lengthSq
+import org.pkozak.MathUtil.Companion.lengthSq
 import java.awt.Color
 import kotlin.math.ceil
 
@@ -89,6 +89,7 @@ class Sphere(
     override fun toJsonObject(): JsonObject {
         val json = buildJsonObject {
             put("name", name)
+            put("type", type.toString())
             put("color", color.rgb)
             put("pos", buildJsonObject {
                 put("x", pos.x)
