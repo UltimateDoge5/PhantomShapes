@@ -1,19 +1,13 @@
 package org.pkozak.screen
 
-import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.text.Text
-import net.minecraft.util.WorldSavePath
-import net.minecraft.util.math.Vec3d
-import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.SavedDataManager
 import org.pkozak.Shape
-import org.pkozak.shape.Cube
 import java.awt.Color
-
 
 class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList<Shape>) :
     Screen(Text.literal("Shapes manager")) {
@@ -37,8 +31,16 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
-        shapeListWidget!!.render(context, mouseX, mouseY, delta)
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, Color.WHITE.rgb)
+        val y = 40
+
+        // Draw the table text
+        context.drawText(textRenderer, Text.literal("Name"),  40, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Type"),  150, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Color"),  250, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Position"),  350, y, Color.WHITE.rgb, false)
+
+        shapeListWidget!!.render(context, mouseX, mouseY, delta)
     }
 
     override fun close() {

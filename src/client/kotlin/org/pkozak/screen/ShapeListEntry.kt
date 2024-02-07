@@ -8,7 +8,11 @@ import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.ElementListWidget
 import net.minecraft.text.Text
 import net.minecraft.util.Colors
+import net.minecraft.util.Identifier
 import net.minecraft.util.math.ColorHelper
+import org.pkozak.PhantomShapesClient.INVISIBLE_ICON
+import org.pkozak.PhantomShapesClient.VISIBLE_ICON
+import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.Shape
 
 class ShapeListEntry(
@@ -20,7 +24,6 @@ class ShapeListEntry(
     private var deleteBtn: ButtonWidget? = null
     private var editBtn: ButtonWidget? = null
     private var toggleBtn: ButtonWidget? = null
-    private var hovered = false
 
     init {
         deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
@@ -29,8 +32,11 @@ class ShapeListEntry(
         editBtn = ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(NewShapeScreen(widget.parent, shape)) }
             .dimensions(0, 0, 50, 32).build()
 
-        toggleBtn = ButtonWidget.builder(Text.literal("Toggle")) { shape.toggleVisibility() }
-            .dimensions(0, 0, 50, 32).build()
+        // TODO: This is not working I hate this
+        toggleBtn = ButtonWidget.builder(Text.empty()) {
+            logger.info("Toggled visibility of shape ${shape.name} to ${shape.enabled}")
+            shape.toggleVisibility()
+        }.dimensions(0, 0, 24, 24).build()
     }
 
     override fun render(
@@ -50,22 +56,31 @@ class ShapeListEntry(
         val i = x + 4
         val j = y + (entryHeight - 24) / 2
         val k = i + 24 + 4
-        this.hovered = hovered
 
-        // Render shape name
+        // First render the shape name
         context.drawText(
             this.client.textRenderer,
             shape.name,
-            k,
+            24,
             l,
             0xFFFFFF,
             false
+        )
+
+        // Then the shape icon
+        context.drawGuiTexture(
+            shape.getIcon(),
+            124,
+            y - 1,
+            20,
+            20
         )
 
         // Render shape color
         context.drawBorder(i, j, 16, 16, ColorHelper.Argb.getArgb(140, 255, 255, 255))
         context.fill(i + 1, j + 1, i + 15, j + 15, shape.color.rgb)
 
+        // Render buttons
         deleteBtn!!.y = y + 1
         deleteBtn!!.x = x + entryWidth - 25
         deleteBtn!!.height = entryHeight - 2
@@ -75,6 +90,15 @@ class ShapeListEntry(
         editBtn!!.x = x + entryWidth - 75 - 4
         editBtn!!.height = entryHeight - 2
         editBtn!!.render(context, mouseX, mouseY, tickDelta)
+
+        toggleBtn!!.y = y + 1
+        toggleBtn!!.x = 24
+        toggleBtn!!.height = entryHeight - 2
+        toggleBtn!!.render(context, mouseX, mouseY, tickDelta)
+    }
+
+    private fun getIconTexture(): Identifier {
+        return if (shape.enabled) VISIBLE_ICON else INVISIBLE_ICON
     }
 
     private fun delete() {
@@ -82,12 +106,10 @@ class ShapeListEntry(
     }
 
     override fun children(): MutableList<out Element> {
-        if (!hovered) return mutableListOf()
         return mutableListOf(deleteBtn!!, editBtn!!)
     }
 
     override fun selectableChildren(): MutableList<out Selectable> {
-        if (!hovered) return mutableListOf()
         return mutableListOf(deleteBtn!!, editBtn!!)
     }
 }

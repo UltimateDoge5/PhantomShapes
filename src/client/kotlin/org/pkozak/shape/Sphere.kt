@@ -14,16 +14,11 @@ class Sphere(
     override val name: String,
     override var color: Color,
     override var pos: Vec3d,
-    radius: Int
+    var radius: Int
 ) :
     Shape() {
     override val type = ShapeType.SPHERE
 
-    private var radius: Int = radius
-        set(value) {
-            field = value
-            render()
-        }
 
     private val positions = mutableSetOf<Vec3d>()
 

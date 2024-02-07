@@ -12,7 +12,7 @@ import java.io.*
 
 class SavedDataManager {
     companion object {
-        fun loadShapes(): List<Shape> {
+        fun loadShapes(): MutableList<Shape> {
             val client = MinecraftClient.getInstance()
             val shapes = mutableListOf<Shape>()
 

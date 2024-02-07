@@ -2,39 +2,34 @@ package org.pkozak.shape
 
 import kotlinx.serialization.json.*
 import net.minecraft.util.math.Vec3d
+import net.minecraft.util.math.Vec3i
 import org.pkozak.Shape
 import org.pkozak.ShapeType
 import java.awt.Color
 
 class Cube(
-    override val name: String, override var color: Color, override var pos: Vec3d, dimensions: Vec3d
+    override val name: String, override var color: Color, override var pos: Vec3d, var dimensions: Vec3i
 ) : Shape() {
     override val type = ShapeType.CUBE
-
-    private var dimensions: Vec3d = dimensions
-        set(value) {
-            field = value
-            render()
-        }
 
     override fun render(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
         // Render the full cube
         if (filled) {
-            for (x in 0 until dimensions.x.toInt()) {
-                for (y in 0 until dimensions.y.toInt()) {
-                    for (z in 0 until dimensions.z.toInt()) {
+            for (x in 0 until dimensions.x) {
+                for (y in 0 until dimensions.y) {
+                    for (z in 0 until dimensions.z) {
                         positions.add(Vec3d(pos.x + x, pos.y + y, pos.z + z))
                     }
                 }
             }
         } else {
             // Render the outline of the cube
-            for (x in 0 until dimensions.x.toInt()) {
-                for (y in 0 until dimensions.y.toInt()) {
-                    for (z in 0 until dimensions.z.toInt()) {
-                        if (x == 0 || x == dimensions.x.toInt() - 1 || y == 0 || y == dimensions.y.toInt() - 1 || z == 0 || z == dimensions.z.toInt() - 1) {
+            for (x in 0 until dimensions.x) {
+                for (y in 0 until dimensions.y) {
+                    for (z in 0 until dimensions.z) {
+                        if (x == 0 || x == dimensions.x - 1 || y == 0 || y == dimensions.y - 1 || z == 0 || z == dimensions.z - 1) {
                             positions.add(Vec3d(pos.x + x, pos.y + y, pos.z + z))
                         }
                     }

@@ -8,6 +8,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
+import net.minecraft.util.math.Vec3i
 import org.pkozak.Shape
 import org.pkozak.ShapeType
 import org.pkozak.shape.Cube
@@ -122,16 +123,39 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
         // If shape is not null, it means we are editing an existing shape
         if (editedShape != null) {
             shapeNameInput!!.text = editedShape.name
-            xCoordsInput!!.text = editedShape.pos.x.toString()
-            yCoordsInput!!.text = editedShape.pos.y.toString()
-            zCoordsInput!!.text = editedShape.pos.z.toString()
+            xCoordsInput!!.text = editedShape.pos.x.toInt().toString()
+            yCoordsInput!!.text = editedShape.pos.y.toInt().toString()
+            zCoordsInput!!.text = editedShape.pos.z.toInt().toString()
 
             redInput!!.text = editedShape.color.red.toString()
             greenInput!!.text = editedShape.color.green.toString()
             blueInput!!.text = editedShape.color.blue.toString()
 
             shapeType = editedShape.type
-            onShapeTypeChange()
+            shapeTypeInput!!.message = Text.literal(shapeType.name.uppercase())
+
+            when (shapeType) {
+                ShapeType.CUBE -> {
+                    widthInput!!.text = (editedShape as Cube).dimensions.x.toString()
+                    heightInput!!.text = editedShape.dimensions.y.toString()
+                    depthInput!!.text = editedShape.dimensions.z.toString()
+                }
+
+                ShapeType.SPHERE -> {
+                    radiusInput!!.text = (editedShape as Sphere).radius.toString()
+                }
+
+                ShapeType.CYLINDER -> {
+                    radiusInput!!.text = (editedShape as Cylinder).radius.toString()
+                    heightInput!!.text = editedShape.height.toString()
+                }
+
+                else -> throw IllegalArgumentException("Invalid shape type")
+            }
+
+            if (editedShape.type != ShapeType.CUBE) {
+                onShapeTypeChange()
+            }
         }
 
         addDrawableChild(widthInput)
@@ -195,6 +219,15 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             shapeTypeInput!!.y - 10,
             0xFFFFFF,
             true
+        )
+
+        // Render the shape type next to the button
+        context.drawGuiTexture(
+            Shape.getIcon(shapeType),
+            shapeTypeInput!!.x + 60,
+            shapeTypeInput!!.y - 1,
+            20,
+            20
         )
 
         when (shapeType) {
@@ -283,10 +316,10 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
 
         val newShape = when (this.shapeType) {
             ShapeType.CUBE -> {
-                val width = widthInput!!.text.toDouble()
-                val height = heightInput!!.text.toDouble()
-                val depth = depthInput!!.text.toDouble()
-                val dimensions = Vec3d(width, height, depth)
+                val width = widthInput!!.text.toInt()
+                val height = heightInput!!.text.toInt()
+                val depth = depthInput!!.text.toInt()
+                val dimensions = Vec3i(width, height, depth)
                 Cube(name, color, pos, dimensions)
             }
 
@@ -349,8 +382,13 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 return
             }
 
-            if (widthInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0 || depthInput!!.text.toInt() <= 0) {
-                errorText = "Dimensions must be greater than 0"
+            try {
+                if (widthInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0 || depthInput!!.text.toInt() <= 0) {
+                    errorText = "Dimensions must be greater than 0"
+                    return
+                }
+            } catch (e: NumberFormatException) {
+                errorText = "Dimensions must be numbers"
                 return
             }
         }
@@ -361,8 +399,13 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 return
             }
 
-            if (radiusInput!!.text.toInt() <= 0) {
-                errorText = "Radius must be greater than 0"
+            try {
+                if (radiusInput!!.text.toInt() <= 0) {
+                    errorText = "Radius must be greater than 0"
+                    return
+                }
+            } catch (e: NumberFormatException) {
+                errorText = "Radius must be a number"
                 return
             }
         }
@@ -373,8 +416,13 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 return
             }
 
-            if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
-                errorText = "Radius and height must be greater than 0"
+            try {
+                if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
+                    errorText = "Radius and height must be greater than 0"
+                    return
+                }
+            } catch (e: NumberFormatException) {
+                errorText = "Radius and height must be numbers"
                 return
             }
         }
@@ -385,8 +433,10 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
     private fun onShapeTypeChange() {
         when (this.shapeType) {
             ShapeType.CUBE -> {
+                remove(heightInput)
                 addDrawableChild(widthInput)
                 addDrawableChild(depthInput)
+                addDrawableChild(heightInput)
                 remove(radiusInput)
             }
 
@@ -396,6 +446,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             }
 
             ShapeType.CYLINDER -> {
+                hideDimensionInputs()
                 addDrawableChild(heightInput)
             }
 

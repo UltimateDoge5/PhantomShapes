@@ -3,6 +3,7 @@ package org.pkozak
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Vec3d
+import net.minecraft.util.math.Vec3i
 import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.shape.Cube
 import org.pkozak.shape.Cylinder
@@ -16,7 +17,6 @@ abstract class Shape {
     abstract val type: ShapeType
     var filled = false
     var enabled = true
-    var drawOnlyEdge = false
 
     abstract fun render(): MutableSet<Vec3d>
 
@@ -24,11 +24,20 @@ abstract class Shape {
         enabled = !enabled
     }
 
+    fun getIcon() = when (type) {
+        ShapeType.CUBE -> PhantomShapesClient.CUBE_ICON
+        ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
+        ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
+        else -> throw IllegalArgumentException("Unsupported shape type")
+    }
+
     abstract fun toJsonObject(): JsonObject
 
     companion object {
         fun fromJsonObject(json: JsonObject): Shape {
-            val type = ShapeType.valueOf(json["type"].toString().replace("\"", "")) // For some reason, the type is wrapped in quotes
+            val type = ShapeType.valueOf(
+                json["type"].toString().replace("\"", "")
+            ) // For some reason, the type is wrapped in quotes
             val name = json["name"].toString().replace("\"", "") // Same here
 
             return when (type) {
@@ -39,10 +48,10 @@ abstract class Shape {
                         (json["pos"] as JsonObject)["y"].toString().toDouble(),
                         (json["pos"] as JsonObject)["z"].toString().toDouble()
                     )
-                    val dimensions = Vec3d(
-                        (json["dimensions"] as JsonObject)["x"].toString().toDouble(),
-                        (json["dimensions"] as JsonObject)["y"].toString().toDouble(),
-                        (json["dimensions"] as JsonObject)["z"].toString().toDouble()
+                    val dimensions = Vec3i(
+                        (json["dimensions"] as JsonObject)["x"].toString().toInt(),
+                        (json["dimensions"] as JsonObject)["y"].toString().toInt(),
+                        (json["dimensions"] as JsonObject)["z"].toString().toInt()
                     )
                     val filled = json["filled"].toString().toBoolean()
 
@@ -88,6 +97,12 @@ abstract class Shape {
             }
         }
 
+        fun getIcon(type: ShapeType) = when (type) {
+            ShapeType.CUBE -> PhantomShapesClient.CUBE_ICON
+            ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
+            ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
+            else -> throw IllegalArgumentException("Unsupported shape type")
+        }
     }
 }
 
