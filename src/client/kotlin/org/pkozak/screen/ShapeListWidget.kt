@@ -3,6 +3,7 @@ package org.pkozak.screen
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.widget.ElementListWidget
 import org.pkozak.Shape
+import kotlin.math.max
 
 class ShapeListWidget(
     internal val parent: ShapesScreen,
@@ -21,6 +22,14 @@ class ShapeListWidget(
         for (shape in shapes) {
             addEntry(ShapeListEntry(this, shape, client))
         }
+    }
+
+    override fun getRowLeft(): Int {
+        return this.x + 6
+    }
+
+    override fun getRowWidth(): Int {
+        return this.width - (if (max(0.0, (this.maxPosition - (this.bottom - this.y - 4)).toDouble()) > 0) 18 else 12)
     }
 
     public override fun addEntry(entry: ShapeListEntry): Int {

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "phantomshapes",
+  "version": "${version}",
+  "name": "PhantomShapes",
+  "description": "Mod for visualizing phantom shapes like cubes and spheres in Minecraft to aid in building.",
+  "authors": [
+    "SnailMan"
+  ],
+  "license": "GPL-3.0",
+  "icon": "icon.png",
+  "issues" : "https://github.com/UltimateDoge5/PhantomShapes/issues",
+  "sources": "https://github.com/UltimateDoge5/PhantomShapes",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      {
+        "value": "org.pkozak.PhantomShapesClient",
+        "adapter": "kotlin"
+      }
+    ],
+    "modmenu": [
+      {
+        "value": "org.pkozak.ModMenuIntegration",
+        "adapter": "kotlin"
+      }
+    ]
+  },
+  "mixins": [
+    {
+      "config": "phantomshapes.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "recommends": {
+    "modmenu": ">=9.0.0"
+  },
+  "depends": {
+    "fabricloader": ">=0.15.6",
+    "minecraft": ">=1.20.0",
+    "java": ">=17",
+    "fabric-api": "*",
+    "fabric-language-kotlin": ">=1.9.22"
+  }
+}

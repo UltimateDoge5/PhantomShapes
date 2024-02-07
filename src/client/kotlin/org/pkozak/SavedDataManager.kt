@@ -6,6 +6,7 @@ import kotlinx.serialization.json.jsonObject
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.WorldSavePath
+import org.apache.logging.log4j.core.tools.picocli.CommandLine
 import org.pkozak.PhantomShapesClient.logger
 import java.io.*
 
@@ -87,6 +88,8 @@ class SavedDataManager {
 
                 writeToFile("$serverAddress.json", jsonString)
             }
+
+            logger.info("Successfully saved shapes to file")
         }
 
         private fun writeToFile(filename: String, jsonString: String): Boolean {

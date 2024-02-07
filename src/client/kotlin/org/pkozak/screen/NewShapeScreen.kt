@@ -14,10 +14,11 @@ import org.pkozak.ShapeType
 import org.pkozak.shape.Cube
 import org.pkozak.shape.Cylinder
 import org.pkozak.shape.Sphere
+import org.pkozak.shape.Tunnel
 import java.awt.Color
 
 class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
-    Screen(Text.literal("Shapes manager")) {
+    Screen(Text.literal("Shape editor")) {
     private var shapeNameInput: TextFieldWidget? = null
     private var shapeTypeInput: ButtonWidget? = null // OptionListWidget is too complex and not worth the time
 
@@ -93,6 +94,11 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 }
 
                 "cylinder" -> {
+                    shapeTypeInput!!.message = Text.literal("Tunnel")
+                    shapeType = ShapeType.TUNNEL
+                }
+
+                "tunnel" -> {
                     shapeTypeInput!!.message = Text.literal("Cube")
                     shapeType = ShapeType.CUBE
                 }
@@ -150,17 +156,17 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                     heightInput!!.text = editedShape.height.toString()
                 }
 
+                ShapeType.TUNNEL -> {
+                    radiusInput!!.text = (editedShape as Tunnel).radius.toString()
+                    heightInput!!.text = editedShape.height.toString()
+                }
+
                 else -> throw IllegalArgumentException("Invalid shape type")
             }
 
-            if (editedShape.type != ShapeType.CUBE) {
-                onShapeTypeChange()
-            }
+            onShapeTypeChange()
         }
 
-        addDrawableChild(widthInput)
-        addDrawableChild(heightInput)
-        addDrawableChild(depthInput)
         addDrawableChild(confirmBtn)
         addDrawableChild(shapeNameInput)
         addDrawableChild(shapeTypeInput)
@@ -176,7 +182,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
         super.render(context, mouseX, mouseY, delta)
         context.drawCenteredTextWithShadow(
             textRenderer,
-            "Create a new shape",
+            if (editedShape != null) "Editing shape - ${editedShape.name}" else "Create a new shape",
             width / 2,
             20,
             0xFFFFFF
@@ -224,7 +230,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
         // Render the shape type next to the button
         context.drawGuiTexture(
             Shape.getIcon(shapeType),
-            shapeTypeInput!!.x + 60,
+            shapeTypeInput!!.x + 62,
             shapeTypeInput!!.y - 1,
             20,
             20
@@ -273,7 +279,25 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 )
             }
 
-            ShapeType.TUNNEL -> TODO()
+            ShapeType.TUNNEL -> {
+                context.drawText(
+                    textRenderer,
+                    "Radius",
+                    radiusInput!!.x,
+                    radiusInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+
+                context.drawText(
+                    textRenderer,
+                    "Length",
+                    heightInput!!.x,
+                    heightInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+            }
             ShapeType.CONE -> TODO()
             ShapeType.PYRAMID -> TODO()
         }
@@ -332,6 +356,12 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 val radius = radiusInput!!.text.toInt()
                 val height = heightInput!!.text.toInt()
                 Cylinder(name, color, pos, radius, height)
+            }
+
+            ShapeType.TUNNEL -> {
+                val radius = radiusInput!!.text.toInt()
+                val height = heightInput!!.text.toInt()
+                Tunnel(name, color, pos, radius, height)
             }
 
             else -> throw IllegalArgumentException("Invalid shape type")
@@ -433,7 +463,6 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
     private fun onShapeTypeChange() {
         when (this.shapeType) {
             ShapeType.CUBE -> {
-                remove(heightInput)
                 addDrawableChild(widthInput)
                 addDrawableChild(depthInput)
                 addDrawableChild(heightInput)
@@ -447,6 +476,16 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
 
             ShapeType.CYLINDER -> {
                 hideDimensionInputs()
+                remove(radiusInput)
+                addDrawableChild(radiusInput)
+                addDrawableChild(heightInput)
+            }
+
+            ShapeType.TUNNEL ->{
+                hideDimensionInputs()
+                remove(radiusInput)
+                remove(heightInput)
+                addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
             }
 

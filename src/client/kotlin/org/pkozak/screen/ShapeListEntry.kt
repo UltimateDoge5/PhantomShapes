@@ -16,27 +16,22 @@ import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.Shape
 
 class ShapeListEntry(
-    private val widget: ShapeListWidget,
-    internal val shape: Shape,
-    private val client: MinecraftClient
-) :
-    ElementListWidget.Entry<ShapeListEntry>() {
+    private val widget: ShapeListWidget, internal val shape: Shape, private val client: MinecraftClient
+) : ElementListWidget.Entry<ShapeListEntry>() {
     private var deleteBtn: ButtonWidget? = null
     private var editBtn: ButtonWidget? = null
     private var toggleBtn: ButtonWidget? = null
 
     init {
-        deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
-            .dimensions(0, 0, 50, 32).build()
-
         editBtn = ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(NewShapeScreen(widget.parent, shape)) }
-            .dimensions(0, 0, 50, 32).build()
+            .dimensions(360, 0, 50, 32).build()
 
-        // TODO: This is not working I hate this
+        deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
+            .dimensions(425, 0, 50, 32).build()
+
         toggleBtn = ButtonWidget.builder(Text.empty()) {
-            logger.info("Toggled visibility of shape ${shape.name} to ${shape.enabled}")
             shape.toggleVisibility()
-        }.dimensions(0, 0, 24, 24).build()
+        }.dimensions(4, 0, 24, 20).build()
     }
 
     override fun render(
@@ -57,47 +52,58 @@ class ShapeListEntry(
         val j = y + (entryHeight - 24) / 2
         val k = i + 24 + 4
 
+        if (index % 2 == 0) {
+            context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(32, 0, 0, 0))
+        } else {
+            context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(64, 0, 0, 0))
+        }
+
+
         // First render the shape name
         context.drawText(
+            this.client.textRenderer, shape.name, x + 40, l, 0xFFFFFF, false
+        )
+
+        // Then the shape icon
+        context.drawGuiTexture(
+            shape.getIcon(), x + 150, y + 2, 16, 16
+        )
+
+        // Render shape color
+        context.drawBorder(x + 190, y + 2, 16, 16, ColorHelper.Argb.getArgb(140, 255, 255, 255))
+        context.fill(x + 191, y + 3, x + 205, y + 17, shape.color.rgb)
+
+        // Render shape position
+        context.drawText(
             this.client.textRenderer,
-            shape.name,
-            24,
+            Text.literal("${shape.pos.x}, ${shape.pos.y}, ${shape.pos.z}"),
+            x + 230,
             l,
             0xFFFFFF,
             false
         )
 
-        // Then the shape icon
-        context.drawGuiTexture(
-            shape.getIcon(),
-            124,
-            y - 1,
-            20,
-            20
-        )
-
-        // Render shape color
-        context.drawBorder(i, j, 16, 16, ColorHelper.Argb.getArgb(140, 255, 255, 255))
-        context.fill(i + 1, j + 1, i + 15, j + 15, shape.color.rgb)
-
         // Render buttons
-        deleteBtn!!.y = y + 1
-        deleteBtn!!.x = x + entryWidth - 25
-        deleteBtn!!.height = entryHeight - 2
-        deleteBtn!!.render(context, mouseX, mouseY, tickDelta)
+        toggleBtn!!.y = y + 2
+        toggleBtn!!.x = x + 4
+        toggleBtn!!.height = entryHeight - 4
+        toggleBtn!!.render(context, mouseX, mouseY, tickDelta)
 
-        editBtn!!.y = y + 1
-        editBtn!!.x = x + entryWidth - 75 - 4
-        editBtn!!.height = entryHeight - 2
+        editBtn!!.y = y + 2
+        editBtn!!.x = x + 354
+        editBtn!!.height = entryHeight - 4
         editBtn!!.render(context, mouseX, mouseY, tickDelta)
 
-        toggleBtn!!.y = y + 1
-        toggleBtn!!.x = 24
-        toggleBtn!!.height = entryHeight - 2
-        toggleBtn!!.render(context, mouseX, mouseY, tickDelta)
+        deleteBtn!!.y = y + 2
+        deleteBtn!!.x = x + 408
+        deleteBtn!!.height = entryHeight - 4
+        deleteBtn!!.render(context, mouseX, mouseY, tickDelta)
+
+        // Center the icon on the button
+        context.drawGuiTexture(getToggleTexture(), x + 8, y + 2, 16, 16)
     }
 
-    private fun getIconTexture(): Identifier {
+    private fun getToggleTexture(): Identifier {
         return if (shape.enabled) VISIBLE_ICON else INVISIBLE_ICON
     }
 
@@ -106,10 +112,10 @@ class ShapeListEntry(
     }
 
     override fun children(): MutableList<out Element> {
-        return mutableListOf(deleteBtn!!, editBtn!!)
+        return mutableListOf(deleteBtn!!, editBtn!!, toggleBtn!!)
     }
 
     override fun selectableChildren(): MutableList<out Selectable> {
-        return mutableListOf(deleteBtn!!, editBtn!!)
+        return mutableListOf(deleteBtn!!, editBtn!!, toggleBtn!!)
     }
 }

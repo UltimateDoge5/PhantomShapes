@@ -16,7 +16,9 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     private var shapeListWidget: ShapeListWidget? = null
 
     override fun init() {
-        shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 24, shapes)
+        shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 26, shapes)
+        shapeListWidget!!.x = 0
+
         addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(NewShapeScreen(this, null)) }
             .dimensions(width / 2 - 205, height - 40, 200, 20)
             .tooltip(Tooltip.of(Text.literal("Create a new phantom shape"))).build()
@@ -28,7 +30,6 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         addDrawableChild(shapeListWidget)
     }
 
-
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, Color.WHITE.rgb)
@@ -37,8 +38,9 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         // Draw the table text
         context.drawText(textRenderer, Text.literal("Name"),  40, y, Color.WHITE.rgb, false)
         context.drawText(textRenderer, Text.literal("Type"),  150, y, Color.WHITE.rgb, false)
-        context.drawText(textRenderer, Text.literal("Color"),  250, y, Color.WHITE.rgb, false)
-        context.drawText(textRenderer, Text.literal("Position"),  350, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Color"),  190, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Position"),  230, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Actions"),  360, y, Color.WHITE.rgb, false)
 
         shapeListWidget!!.render(context, mouseX, mouseY, delta)
     }

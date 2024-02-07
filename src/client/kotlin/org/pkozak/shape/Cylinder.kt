@@ -47,10 +47,8 @@ class Cylinder(
                     break@forZ
                 }
 
-                if (!filled) {
-                    if (lengthSq(nextXn, zn) <= 1 && lengthSq(xn, nextZn) <= 1) {
-                        continue
-                    }
+                if (lengthSq(nextXn, zn) <= 1 && lengthSq(xn, nextZn) <= 1) {
+                    continue
                 }
 
                 for (y in 0 until height) {
@@ -77,7 +75,7 @@ class Cylinder(
             })
             put("radius", radius)
             put("height", height)
-            put("filled", filled)
+            put("enabled", enabled)
         }
 
         return json

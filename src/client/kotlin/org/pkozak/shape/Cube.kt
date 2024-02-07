@@ -15,49 +15,38 @@ class Cube(
     override fun render(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
-        // Render the full cube
-        if (filled) {
-            for (x in 0 until dimensions.x) {
-                for (y in 0 until dimensions.y) {
-                    for (z in 0 until dimensions.z) {
+
+        // Render the outline of the cube
+        for (x in 0 until dimensions.x) {
+            for (y in 0 until dimensions.y) {
+                for (z in 0 until dimensions.z) {
+                    if (x == 0 || x == dimensions.x - 1 || y == 0 || y == dimensions.y - 1 || z == 0 || z == dimensions.z - 1) {
                         positions.add(Vec3d(pos.x + x, pos.y + y, pos.z + z))
                     }
                 }
             }
-        } else {
-            // Render the outline of the cube
-            for (x in 0 until dimensions.x) {
-                for (y in 0 until dimensions.y) {
-                    for (z in 0 until dimensions.z) {
-                        if (x == 0 || x == dimensions.x - 1 || y == 0 || y == dimensions.y - 1 || z == 0 || z == dimensions.z - 1) {
-                            positions.add(Vec3d(pos.x + x, pos.y + y, pos.z + z))
-                        }
-                    }
-                }
-            }
         }
+    return positions
+}
 
-        return positions
+override fun toJsonObject(): JsonObject {
+    val json = buildJsonObject {
+        put("name", name)
+        put("type", type.toString())
+        put("color", color.rgb)
+        put("pos", buildJsonObject {
+            put("x", pos.x)
+            put("y", pos.y)
+            put("z", pos.z)
+        })
+        put("dimensions", buildJsonObject {
+            put("x", dimensions.x)
+            put("y", dimensions.y)
+            put("z", dimensions.z)
+        })
+        put("enabled", enabled)
     }
 
-    override fun toJsonObject(): JsonObject {
-        val json = buildJsonObject {
-            put("name", name)
-            put("type", type.toString())
-            put("color", color.rgb)
-            put("pos", buildJsonObject {
-                put("x", pos.x)
-                put("y", pos.y)
-                put("z", pos.z)
-            })
-            put("dimensions", buildJsonObject {
-                put("x", dimensions.x)
-                put("y", dimensions.y)
-                put("z", dimensions.z)
-            })
-            put("filled", filled)
-        }
-
-        return json
-    }
+    return json
+}
 }

@@ -11,10 +11,12 @@ import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.Identifier
+import net.minecraft.util.WorldSavePath
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.lwjgl.glfw.GLFW
 import org.pkozak.screen.ShapesScreen
+import org.pkozak.shape.Tunnel
 import org.slf4j.LoggerFactory
 import java.awt.Color
 
@@ -24,19 +26,20 @@ object PhantomShapesClient : ClientModInitializer {
 
     val CUBE_ICON = Identifier("phantomshapes", "cube")
     val SPHERE_ICON = Identifier("phantomshapes", "sphere")
-    val CYLINDER_ICON = Identifier("phantomshapes","cylinder")
-    val VISIBLE_ICON = Identifier("phantomshapes","eye_open")
-    val INVISIBLE_ICON = Identifier("phantomshapes","eye_closed")
-    val DELETE_ICON = Identifier("phantomshapes","delete")
+    val CYLINDER_ICON = Identifier("phantomshapes", "cylinder")
+    val TUNNEL_ICON = Identifier("phantomshapes", "tunnel")
+    val VISIBLE_ICON = Identifier("phantomshapes", "eye_open")
+    val INVISIBLE_ICON = Identifier("phantomshapes", "eye_closed")
+    val DELETE_ICON = Identifier("phantomshapes", "delete")
 
     private var shapes = mutableListOf<Shape>()
 
     private var keyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
-            "key.phantomshapes.menu",  // The translation key of the keybinding's name
+            "key.phantomshapes.menu",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_P,
-            "category.phantomshapes.controls" // The translation key of the keybinding's category.
+            "category.phantomshapes.controls"
         )
     )
 
@@ -49,15 +52,6 @@ object PhantomShapesClient : ClientModInitializer {
                 shapes = SavedDataManager.loadShapes()
             } catch (e: Exception) {
                 logger.error("Failed to load shapes from file", e)
-            }
-        })
-
-        // Save shapes to file when the world is unloaded
-        ServerWorldEvents.UNLOAD.register(ServerWorldEvents.Unload { _, _ ->
-            try {
-                SavedDataManager.saveShapes(shapes)
-            } catch (e: Exception) {
-                logger.error("Failed to save shapes to file", e)
             }
         })
 
