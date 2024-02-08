@@ -4,22 +4,20 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
-import org.pkozak.util.MathUtil
 import org.pkozak.Shape
 import org.pkozak.ShapeType
+import org.pkozak.util.MathUtil
 import java.awt.Color
 import kotlin.math.ceil
 
-class Tunnel(
+class ArchBridge(
     override val name: String,
     override var color: Color,
     override var pos: Vec3d,
     val radius: Int,
-    val height: Int
+    val width: Int
 ) : Shape() {
-    override val type = ShapeType.TUNNEL
-
-
+    override val type = ShapeType.ARCH_BRIDGE
     override fun render(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
@@ -36,27 +34,15 @@ class Tunnel(
                 val zn = nextZn
                 nextZn = (y + 1) * invRadius
 
-                val distanceSq: Double = MathUtil.lengthSq(xn, zn)
-                if (distanceSq > 1) {
-                    if (y == 0) {
-                        break@forX
-                    }
-                    break@forY
-                }
-
                 if (MathUtil.lengthSq(nextXn, zn) <= 1 && MathUtil.lengthSq(xn, nextZn) <= 1) {
                     continue
                 }
 
-                for (z in 0 until height) {
+                for (z in 0 until width) {
                     positions.add(Vec3d(pos.x + x, pos.y + y, pos.z + z))
                     positions.add(Vec3d(pos.x - x, pos.y + y, pos.z + z))
                     positions.add(Vec3d(pos.x + x, pos.y + y, pos.z - z))
                     positions.add(Vec3d(pos.x - x, pos.y + y, pos.z - z))
-                    positions.add(Vec3d(pos.x + x, pos.y - y, pos.z + z))
-                    positions.add(Vec3d(pos.x - x, pos.y - y, pos.z + z))
-                    positions.add(Vec3d(pos.x + x, pos.y - y, pos.z - z))
-                    positions.add(Vec3d(pos.x - x, pos.y - y, pos.z - z))
                 }
             }
         }
@@ -75,7 +61,7 @@ class Tunnel(
                 put("z", pos.z)
             })
             put("radius", radius)
-            put("height", height)
+            put("width", width)
             put("enabled", enabled)
         }
 

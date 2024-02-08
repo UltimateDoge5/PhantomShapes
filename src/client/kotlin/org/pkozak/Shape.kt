@@ -5,10 +5,7 @@ import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.PhantomShapesClient.logger
-import org.pkozak.shape.Cube
-import org.pkozak.shape.Cylinder
-import org.pkozak.shape.Sphere
-import org.pkozak.shape.Tunnel
+import org.pkozak.shape.*
 import java.awt.Color
 
 abstract class Shape {
@@ -29,7 +26,7 @@ abstract class Shape {
         ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
         ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
         ShapeType.TUNNEL -> PhantomShapesClient.TUNNEL_ICON
-        else -> throw IllegalArgumentException("Unsupported shape type")
+        ShapeType.ARCH_BRIDGE -> PhantomShapesClient.ARCH_BRIDGE_ICON
     }
 
     abstract fun toJsonObject(): JsonObject
@@ -86,8 +83,13 @@ abstract class Shape {
 
                     Tunnel(name, color, pos, radius, height)
                 }
-                ShapeType.CONE -> TODO()
-                ShapeType.PYRAMID -> TODO()
+
+                ShapeType.ARCH_BRIDGE -> {
+                    val radius = json["radius"].toString().toInt()
+                    val width = json["width"].toString().toInt()
+
+                    ArchBridge(name, color, pos, radius, width)
+                }
             }
         }
 
@@ -96,11 +98,11 @@ abstract class Shape {
             ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
             ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
             ShapeType.TUNNEL -> PhantomShapesClient.TUNNEL_ICON
-            else -> throw IllegalArgumentException("Unsupported shape type")
+            ShapeType.ARCH_BRIDGE -> PhantomShapesClient.ARCH_BRIDGE_ICON
         }
     }
 }
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, TUNNEL, CONE, PYRAMID;
+    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH_BRIDGE;
 }

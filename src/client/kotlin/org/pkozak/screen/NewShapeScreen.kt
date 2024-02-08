@@ -11,10 +11,7 @@ import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.Shape
 import org.pkozak.ShapeType
-import org.pkozak.shape.Cube
-import org.pkozak.shape.Cylinder
-import org.pkozak.shape.Sphere
-import org.pkozak.shape.Tunnel
+import org.pkozak.shape.*
 import java.awt.Color
 
 class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
@@ -99,6 +96,11 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 }
 
                 "tunnel" -> {
+                    shapeTypeInput!!.message = Text.literal("Arch")
+                    shapeType = ShapeType.ARCH_BRIDGE
+                }
+
+                "arch" -> {
                     shapeTypeInput!!.message = Text.literal("Cube")
                     shapeType = ShapeType.CUBE
                 }
@@ -161,7 +163,10 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                     heightInput!!.text = editedShape.height.toString()
                 }
 
-                else -> throw IllegalArgumentException("Invalid shape type")
+                ShapeType.ARCH_BRIDGE -> {
+                    radiusInput!!.text = (editedShape as ArchBridge).radius.toString()
+                    heightInput!!.text = editedShape.width.toString()
+                }
             }
 
             onShapeTypeChange()
@@ -298,8 +303,26 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                     true
                 )
             }
-            ShapeType.CONE -> TODO()
-            ShapeType.PYRAMID -> TODO()
+
+            ShapeType.ARCH_BRIDGE -> {
+                context.drawText(
+                    textRenderer,
+                    "Radius",
+                    radiusInput!!.x,
+                    radiusInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+
+                context.drawText(
+                    textRenderer,
+                    "Width",
+                    heightInput!!.x,
+                    heightInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+            }
         }
 
         validateShape()
@@ -364,7 +387,11 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 Tunnel(name, color, pos, radius, height)
             }
 
-            else -> throw IllegalArgumentException("Invalid shape type")
+            ShapeType.ARCH_BRIDGE -> {
+                val radius = radiusInput!!.text.toInt()
+                val width = heightInput!!.text.toInt()
+                ArchBridge(name, color, pos, radius, width)
+            }
         }
 
         if (editedShape !== null) {
@@ -481,15 +508,13 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 addDrawableChild(heightInput)
             }
 
-            ShapeType.TUNNEL ->{
+            ShapeType.TUNNEL, ShapeType.ARCH_BRIDGE -> {
                 hideDimensionInputs()
                 remove(radiusInput)
                 remove(heightInput)
                 addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
             }
-
-            else -> throw IllegalArgumentException("Invalid shape type")
         }
     }
 

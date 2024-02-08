@@ -31,6 +31,7 @@ object PhantomShapesClient : ClientModInitializer {
     val TUNNEL_ICON = Identifier("phantomshapes", "tunnel")
     val VISIBLE_ICON = Identifier("phantomshapes", "eye_open")
     val INVISIBLE_ICON = Identifier("phantomshapes", "eye_closed")
+    val ARCH_BRIDGE_ICON = Identifier("phantomshapes", "arch_bridge")
     val DELETE_ICON = Identifier("phantomshapes", "delete")
 
     private var shapes = mutableListOf<Shape>()

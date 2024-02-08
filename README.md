@@ -24,6 +24,7 @@ And even more are coming!
 Upon loading into the game simply press `P` and the shape manager menu will show up. From that point you should be able
 to use the interface to do anything.
 
+Mod settings can be accessed using the [Mod Menu](https://modrinth.com/mod/modmenu)
 ## Required libraries
 
 - Fabric API
