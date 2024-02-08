@@ -9,9 +9,12 @@
   ],
   "license": "GPL-3.0",
   "icon": "icon.png",
-  "issues" : "https://github.com/UltimateDoge5/PhantomShapes/issues",
-  "sources": "https://github.com/UltimateDoge5/PhantomShapes",
-  "environment": "*",
+  "contact": {
+    "homepage": "https://modrinth.com/mod/phantomshapes",
+    "issues": "https://github.com/UltimateDoge5/PhantomShapes/issues",
+    "sources": "https://github.com/UltimateDoge5/PhantomShapes"
+  },
+  "environment": "client",
   "entrypoints": {
     "client": [
       {

@@ -11,18 +11,19 @@ import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.Identifier
-import net.minecraft.util.WorldSavePath
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
-import net.minecraft.util.math.Vec3i
 import org.lwjgl.glfw.GLFW
 import org.pkozak.screen.ShapesScreen
-import org.pkozak.shape.Tunnel
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Color
 
 
 object PhantomShapesClient : ClientModInitializer {
-    val logger = LoggerFactory.getLogger("phantomshapes")
+    val logger: Logger = LoggerFactory.getLogger("phantomshapes")
+    val client = MinecraftClient.getInstance()
+    val options = Options()
 
     val CUBE_ICON = Identifier("phantomshapes", "cube")
     val SPHERE_ICON = Identifier("phantomshapes", "sphere")
@@ -34,11 +35,20 @@ object PhantomShapesClient : ClientModInitializer {
 
     private var shapes = mutableListOf<Shape>()
 
-    private var keyBinding = KeyBindingHelper.registerKeyBinding(
+    private var menuKeyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
             "key.phantomshapes.menu",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_P,
+            "category.phantomshapes.controls"
+        )
+    )
+
+    private val toggleRenderKeyBinding = KeyBindingHelper.registerKeyBinding(
+        KeyBinding(
+            "key.phantomshapes.toggle_render",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_UNKNOWN,
             "category.phantomshapes.controls"
         )
     )
@@ -56,14 +66,21 @@ object PhantomShapesClient : ClientModInitializer {
         })
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
-            while (keyBinding.wasPressed()) {
+            while (menuKeyBinding.wasPressed()) {
                 client.setScreen(ShapesScreen(client.currentScreen, shapes))
+            }
+
+            while (toggleRenderKeyBinding.wasPressed()) {
+                options.disableRender.value = !options.disableRender.value
             }
         })
     }
 
     // Render shapes from the cache
     private fun onWorldRendered(matrix: MatrixStack) {
+        //TODO: Maybe unregister and register the event again when the options change instead of this?
+        if (options.disableRender.value) return
+
         for (shape in shapes) {
             val playerPos = MinecraftClient.getInstance().player?.pos
             val distance = shape.pos.distanceTo(playerPos)
@@ -75,7 +92,20 @@ object PhantomShapesClient : ClientModInitializer {
             val blocks = shape.render()
             val fillColor = Color(shape.color.red, shape.color.green, shape.color.blue, 50)
             for (cube in blocks) {
-                Renderer3d.renderEdged(matrix, fillColor, shape.color, cube, Vec3d(1.0, 1.0, 1.0))
+                // Check if the cube is inside a block
+                if (!options.drawOnBlocks.value) {
+                    val blockPos = BlockPos(cube.x.toInt(), cube.y.toInt(), cube.z.toInt())
+                    if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                }
+
+                if (options.drawOnlyEdges.value) Renderer3d.renderOutline(
+                    matrix,
+                    shape.color,
+                    cube,
+                    Vec3d(1.0, 1.0, 1.0)
+                )
+                else
+                    Renderer3d.renderEdged(matrix, fillColor, shape.color, cube, Vec3d(1.0, 1.0, 1.0))
             }
         }
     }

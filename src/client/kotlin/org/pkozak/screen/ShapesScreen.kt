@@ -4,6 +4,7 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
+import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
 import org.pkozak.SavedDataManager
 import org.pkozak.Shape
@@ -22,7 +23,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(NewShapeScreen(this, null)) }
             .dimensions(width / 2 - 205, height - 40, 200, 20)
             .tooltip(Tooltip.of(Text.literal("Create a new phantom shape"))).build()
-        closeBtn = ButtonWidget.builder(Text.literal("Close")) { close() }
+        closeBtn = ButtonWidget.builder(ScreenTexts.DONE) { close() }
             .dimensions(width / 2 + 5, height - 40, 200, 20).build()
 
         addDrawableChild(addShapeBtn)

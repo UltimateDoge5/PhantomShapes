@@ -4,6 +4,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.Element
 import net.minecraft.client.gui.Selectable
+import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.ElementListWidget
 import net.minecraft.text.Text
@@ -29,9 +30,10 @@ class ShapeListEntry(
         deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
             .dimensions(425, 0, 50, 32).build()
 
-        toggleBtn = ButtonWidget.builder(Text.empty()) {
-            shape.toggleVisibility()
-        }.dimensions(4, 0, 24, 20).build()
+        toggleBtn = ButtonWidget.builder(Text.empty()) { shape.toggleVisibility() }
+            .dimensions(4, 0, 24, 20)
+            .tooltip(Tooltip.of(Text.of("Toggle visibility")))
+            .build()
     }
 
     override fun render(
