@@ -9,24 +9,24 @@ import net.minecraft.text.Text
 import org.pkozak.Options
 
 class OptionsScreen(private val parent: Screen, private var options: Options) :
-    Screen(Text.literal("PhantomShapes Options")) {
+    Screen(Text.literal("Phantom Shapes Options")) {
     private lateinit var list: OptionListWidget
     override fun init() {
         super.init()
-        list = this.addDrawableChild(OptionListWidget(this.client, this.width, this.height - 64, 32, 25))
+        list = addDrawableChild(OptionListWidget(this.client, this.width, this.height - 64, 32, 25))
 
         list.addSingleOptionEntry(options.disableRender)
         list.addSingleOptionEntry(options.drawOnBlocks)
         list.addSingleOptionEntry(options.drawOnlyEdges)
 
-        this.addDrawableChild(list)
-        this.addDrawableChild(
+        addDrawableChild(list)
+        addDrawableChild(
             ButtonWidget.builder(
                 ScreenTexts.DONE
             ) {
-                // TODO: Save options to file
-                client!!.setScreen(this.parent)
-            }.dimensions(this.width / 2 - 100, this.height - 27, 200, 20).build()
+                options.saveToFile()
+                client!!.setScreen(parent)
+            }.dimensions(width / 2 - 100, height - 27, 200, 20).build()
         )
     }
 
@@ -37,7 +37,7 @@ class OptionsScreen(private val parent: Screen, private var options: Options) :
     }
 
     override fun close() {
+        options.saveToFile()
         client?.setScreen(parent)
     }
-
 }

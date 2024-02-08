@@ -1,4 +1,4 @@
-package org.pkozak
+package org.pkozak.util
 
 class MathUtil {
     companion object {

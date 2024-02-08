@@ -47,8 +47,8 @@ class SavedDataManager {
             return shapes
         }
 
-        private fun readFromFile(s: String): String? {
-            val dir = FabricLoader.getInstance().configDir.resolve("shapes")
+        fun readFromFile(s: String, configDir:Boolean = false): String? {
+            val dir = FabricLoader.getInstance().configDir.resolve(if (configDir) "" else "shapes")
             val file = File(dir.toFile(), s)
 
             if (!file.exists()) {
@@ -92,8 +92,8 @@ class SavedDataManager {
             logger.info("Successfully saved shapes to file")
         }
 
-        private fun writeToFile(filename: String, jsonString: String): Boolean {
-            val dir = FabricLoader.getInstance().configDir.resolve("shapes")
+        fun writeToFile(filename: String, jsonString: String, configDir: Boolean = false): Boolean {
+            val dir = FabricLoader.getInstance().configDir.resolve(if (configDir) "" else "shapes")
             val file = File(dir.toFile(), filename)
 
             // Check if the mod directory exists

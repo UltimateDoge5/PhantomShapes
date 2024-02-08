@@ -6,7 +6,7 @@ import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
 import org.pkozak.Shape
 import org.pkozak.ShapeType
-import org.pkozak.MathUtil.Companion.lengthSq
+import org.pkozak.util.MathUtil.Companion.lengthSq
 import java.awt.Color
 import kotlin.math.ceil
 

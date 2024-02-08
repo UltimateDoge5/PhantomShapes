@@ -4,8 +4,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
-import net.minecraft.util.math.Vec3i
-import org.pkozak.MathUtil
+import org.pkozak.util.MathUtil
 import org.pkozak.Shape
 import org.pkozak.ShapeType
 import java.awt.Color
