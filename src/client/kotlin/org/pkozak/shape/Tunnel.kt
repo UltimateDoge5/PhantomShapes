@@ -9,6 +9,8 @@ import org.pkozak.Shape
 import org.pkozak.ShapeType
 import java.awt.Color
 import kotlin.math.ceil
+import kotlin.math.cos
+import kotlin.math.sin
 
 class Tunnel(
     override val name: String,
@@ -61,7 +63,22 @@ class Tunnel(
             }
         }
 
-        return positions
+        if (rotation == 0.0) return positions
+
+        // Rotate the arch based on the rotation variable degree
+        val rotatedSet = mutableSetOf<Vec3d>()
+        for (vec in positions) {
+            val x = vec.x - pos.x
+            val y = vec.y - pos.y
+            val z = vec.z - pos.z
+
+            val x1 = x * cos(Math.toRadians(rotation)) - z * sin(Math.toRadians(rotation))
+            val z1 = x * sin(Math.toRadians(rotation)) + z * cos(Math.toRadians(rotation))
+
+            rotatedSet.add(Vec3d(x1 + pos.x, y + pos.y, z1 + pos.z))
+        }
+
+        return rotatedSet
     }
 
     override fun toJsonObject(): JsonObject {
@@ -77,6 +94,7 @@ class Tunnel(
             put("radius", radius)
             put("height", height)
             put("enabled", enabled)
+            put("rotation", rotation)
         }
 
         return json

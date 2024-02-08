@@ -22,7 +22,7 @@ import java.awt.Color
 
 object PhantomShapesClient : ClientModInitializer {
     val logger: Logger = LoggerFactory.getLogger("phantomshapes")
-    val client = MinecraftClient.getInstance()
+    val client: MinecraftClient = MinecraftClient.getInstance()
     val options = Options()
 
     val CUBE_ICON = Identifier("phantomshapes", "cube")
@@ -31,7 +31,7 @@ object PhantomShapesClient : ClientModInitializer {
     val TUNNEL_ICON = Identifier("phantomshapes", "tunnel")
     val VISIBLE_ICON = Identifier("phantomshapes", "eye_open")
     val INVISIBLE_ICON = Identifier("phantomshapes", "eye_closed")
-    val ARCH_BRIDGE_ICON = Identifier("phantomshapes", "arch_bridge")
+    val ARCH_BRIDGE_ICON = Identifier("phantomshapes", "arch")
     val DELETE_ICON = Identifier("phantomshapes", "delete")
 
     private var shapes = mutableListOf<Shape>()

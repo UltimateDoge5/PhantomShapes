@@ -76,6 +76,7 @@ class Cylinder(
             put("radius", radius)
             put("height", height)
             put("enabled", enabled)
+            put("rotation", rotation)
         }
 
         return json

@@ -12,6 +12,7 @@ import net.minecraft.util.math.Vec3i
 import org.pkozak.Shape
 import org.pkozak.ShapeType
 import org.pkozak.shape.*
+import org.pkozak.ui.RotationSlider
 import java.awt.Color
 
 class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
@@ -33,10 +34,11 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
     private var radiusInput: TextFieldWidget? = null
 
     private var confirmBtn: ButtonWidget? = null
+    private var rotationInput: RotationSlider? = null
+
     private var errorText = ""
-
     private var shapeType: ShapeType = ShapeType.CUBE
-
+    private var rotation = 0.0
 
     override fun init() {
         super.init()
@@ -97,7 +99,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
 
                 "tunnel" -> {
                     shapeTypeInput!!.message = Text.literal("Arch")
-                    shapeType = ShapeType.ARCH_BRIDGE
+                    shapeType = ShapeType.ARCH
                 }
 
                 "arch" -> {
@@ -127,6 +129,12 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Radius"))
         radiusInput!!.setPlaceholder(Text.literal("Radius"))
         radiusInput!!.text = "5"
+
+        rotationInput = RotationSlider(width / 3 + 108 + 20 + 108, 100, 75, 20) { value: Double ->
+            if (editedShape != null) {
+                editedShape.rotation = value
+            }
+        }
 
         // If shape is not null, it means we are editing an existing shape
         if (editedShape != null) {
@@ -161,11 +169,13 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 ShapeType.TUNNEL -> {
                     radiusInput!!.text = (editedShape as Tunnel).radius.toString()
                     heightInput!!.text = editedShape.height.toString()
+                    rotationInput!!.setAngle(editedShape.rotation)
                 }
 
-                ShapeType.ARCH_BRIDGE -> {
+                ShapeType.ARCH -> {
                     radiusInput!!.text = (editedShape as ArchBridge).radius.toString()
                     heightInput!!.text = editedShape.width.toString()
+                    rotationInput!!.setAngle(editedShape.rotation)
                 }
             }
 
@@ -304,7 +314,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 )
             }
 
-            ShapeType.ARCH_BRIDGE -> {
+            ShapeType.ARCH -> {
                 context.drawText(
                     textRenderer,
                     "Radius",
@@ -384,13 +394,17 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             ShapeType.TUNNEL -> {
                 val radius = radiusInput!!.text.toInt()
                 val height = heightInput!!.text.toInt()
-                Tunnel(name, color, pos, radius, height)
+                Tunnel(name, color, pos, radius, height).apply{
+                    rotation = rotationInput!!.getAngle()
+                }
             }
 
-            ShapeType.ARCH_BRIDGE -> {
+            ShapeType.ARCH -> {
                 val radius = radiusInput!!.text.toInt()
                 val width = heightInput!!.text.toInt()
-                ArchBridge(name, color, pos, radius, width)
+                ArchBridge(name, color, pos, radius, width).apply{
+                    rotation = rotationInput!!.getAngle()
+                }
             }
         }
 
@@ -494,26 +508,31 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 addDrawableChild(depthInput)
                 addDrawableChild(heightInput)
                 remove(radiusInput)
+                remove(rotationInput)
             }
 
             ShapeType.SPHERE -> {
                 hideDimensionInputs()
                 addDrawableChild(radiusInput)
+                remove(rotationInput)
             }
 
             ShapeType.CYLINDER -> {
                 hideDimensionInputs()
                 remove(radiusInput)
+                remove(rotationInput)
                 addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
             }
 
-            ShapeType.TUNNEL, ShapeType.ARCH_BRIDGE -> {
+            ShapeType.TUNNEL, ShapeType.ARCH -> {
                 hideDimensionInputs()
                 remove(radiusInput)
                 remove(heightInput)
+                remove(rotationInput)
                 addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
+                addDrawableChild(rotationInput)
             }
         }
     }

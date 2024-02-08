@@ -1,10 +1,8 @@
 package org.pkozak
 
-import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
-import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.shape.*
 import java.awt.Color
 
@@ -14,6 +12,7 @@ abstract class Shape {
     abstract val name: String
     abstract val type: ShapeType
     var enabled = true
+    var rotation = 0.0
 
     abstract fun render(): MutableSet<Vec3d>
 
@@ -26,7 +25,7 @@ abstract class Shape {
         ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
         ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
         ShapeType.TUNNEL -> PhantomShapesClient.TUNNEL_ICON
-        ShapeType.ARCH_BRIDGE -> PhantomShapesClient.ARCH_BRIDGE_ICON
+        ShapeType.ARCH -> PhantomShapesClient.ARCH_BRIDGE_ICON
     }
 
     abstract fun toJsonObject(): JsonObject
@@ -80,15 +79,21 @@ abstract class Shape {
                 ShapeType.TUNNEL -> {
                     val radius = json["radius"].toString().toInt()
                     val height = json["height"].toString().toInt()
+                    val rotation = json["rotation"].toString().toDouble()
 
-                    Tunnel(name, color, pos, radius, height)
+                    Tunnel(name, color, pos, radius, height).apply {
+                        this.rotation = rotation
+                    }
                 }
 
-                ShapeType.ARCH_BRIDGE -> {
+                ShapeType.ARCH -> {
                     val radius = json["radius"].toString().toInt()
                     val width = json["width"].toString().toInt()
+                    val rotation = json["rotation"].toString().toDouble()
 
-                    ArchBridge(name, color, pos, radius, width)
+                    ArchBridge(name, color, pos, radius, width).apply {
+                        this.rotation = rotation
+                    }
                 }
             }
         }
@@ -98,11 +103,11 @@ abstract class Shape {
             ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
             ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
             ShapeType.TUNNEL -> PhantomShapesClient.TUNNEL_ICON
-            ShapeType.ARCH_BRIDGE -> PhantomShapesClient.ARCH_BRIDGE_ICON
+            ShapeType.ARCH -> PhantomShapesClient.ARCH_BRIDGE_ICON
         }
     }
 }
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH_BRIDGE;
+    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH;
 }
