@@ -12,7 +12,7 @@ import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.sin
 
-class ArchBridge(
+class Arch(
     override val name: String,
     override var color: Color,
     override var pos: Vec3d,
@@ -79,6 +79,7 @@ class ArchBridge(
             })
             put("radius", radius)
             put("width", width)
+            put("rotation", rotation)
             put("enabled", enabled)
         }
 

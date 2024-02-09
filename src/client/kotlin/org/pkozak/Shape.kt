@@ -31,6 +31,8 @@ abstract class Shape {
     abstract fun toJsonObject(): JsonObject
 
     companion object {
+
+        // TODO: Make this safer - it's not safe to assume that the JsonObject will always contain the required fields
         fun fromJsonObject(json: JsonObject): Shape {
             val type = ShapeType.valueOf(
                 json["type"].toString().replace("\"", "")
@@ -91,7 +93,7 @@ abstract class Shape {
                     val width = json["width"].toString().toInt()
                     val rotation = json["rotation"].toString().toDouble()
 
-                    ArchBridge(name, color, pos, radius, width).apply {
+                    Arch(name, color, pos, radius, width).apply {
                         this.rotation = rotation
                     }
                 }

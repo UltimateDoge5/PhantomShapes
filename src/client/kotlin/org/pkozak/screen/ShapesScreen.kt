@@ -6,8 +6,9 @@ import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
-import org.pkozak.SavedDataManager
+import org.pkozak.PhantomShapesClient
 import org.pkozak.Shape
+import org.pkozak.util.SavedDataManager
 import java.awt.Color
 
 class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList<Shape>) :
@@ -37,17 +38,19 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         val y = 40
 
         // Draw the table text
-        context.drawText(textRenderer, Text.literal("Name"),  40, y, Color.WHITE.rgb, false)
-        context.drawText(textRenderer, Text.literal("Type"),  150, y, Color.WHITE.rgb, false)
-        context.drawText(textRenderer, Text.literal("Color"),  190, y, Color.WHITE.rgb, false)
-        context.drawText(textRenderer, Text.literal("Position"),  230, y, Color.WHITE.rgb, false)
-        context.drawText(textRenderer, Text.literal("Actions"),  360, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Name"), 40, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Type"), 150, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Color"), 190, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Position"), 230, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Actions"), 360, y, Color.WHITE.rgb, false)
 
         shapeListWidget!!.render(context, mouseX, mouseY, delta)
     }
 
     override fun close() {
-        SavedDataManager.saveShapes(shapes)
+        if (!PhantomShapesClient.overwriteProtection) {
+            SavedDataManager.saveShapes(shapes)
+        }
         client?.setScreen(parent)
     }
 

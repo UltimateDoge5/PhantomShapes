@@ -19,14 +19,9 @@ class Cylinder(
 ) : Shape() {
     override val type = ShapeType.CYLINDER
 
-    private val positions = mutableSetOf<Vec3d>()
-
     override fun render(): MutableSet<Vec3d> {
-        renderCylinder()
-        return positions
-    }
+        val positions = mutableSetOf<Vec3d>()
 
-    private fun renderCylinder(): MutableSet<Vec3d> {
         val invRadius: Double = 1 / (radius + 0.5)
         val ceilRadius = ceil(radius + 0.5).toInt()
 

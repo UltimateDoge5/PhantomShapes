@@ -3,6 +3,7 @@ package org.pkozak
 import me.x150.renderer.event.RenderEvents
 import me.x150.renderer.render.Renderer3d
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
@@ -10,11 +11,13 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import org.lwjgl.glfw.GLFW
 import org.pkozak.screen.ShapesScreen
+import org.pkozak.util.SavedDataManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Color
@@ -32,7 +35,10 @@ object PhantomShapesClient : ClientModInitializer {
     val VISIBLE_ICON = Identifier("phantomshapes", "eye_open")
     val INVISIBLE_ICON = Identifier("phantomshapes", "eye_closed")
     val ARCH_BRIDGE_ICON = Identifier("phantomshapes", "arch")
+    val PIN_ICON = Identifier("phantomshapes", "pin")
     val DELETE_ICON = Identifier("phantomshapes", "delete")
+
+    var overwriteProtection = false
 
     private var shapes = mutableListOf<Shape>()
 
@@ -61,8 +67,11 @@ object PhantomShapesClient : ClientModInitializer {
         ServerWorldEvents.LOAD.register(ServerWorldEvents.Load { _, _ ->
             try {
                 shapes = SavedDataManager.loadShapes()
+                logger.info("Loaded ${shapes.size} shapes from file")
             } catch (e: Exception) {
                 logger.error("Failed to load shapes from file", e)
+                logger.info("Locking the file to prevent overwriting it")
+                overwriteProtection = true
             }
         })
 
@@ -79,7 +88,6 @@ object PhantomShapesClient : ClientModInitializer {
 
     // Render shapes from the cache
     private fun onWorldRendered(matrix: MatrixStack) {
-        //TODO: Maybe unregister and register the event again when the options change instead of this?
         if (options.disableRender.value) return
 
         for (shape in shapes) {

@@ -1,4 +1,4 @@
-package org.pkozak
+package org.pkozak.util
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -6,8 +6,8 @@ import kotlinx.serialization.json.jsonObject
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.WorldSavePath
-import org.apache.logging.log4j.core.tools.picocli.CommandLine
 import org.pkozak.PhantomShapesClient.logger
+import org.pkozak.Shape
 import java.io.*
 
 

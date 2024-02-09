@@ -6,6 +6,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import net.minecraft.client.option.SimpleOption
 import net.minecraft.text.Text
+import org.pkozak.util.SavedDataManager
 
 class Options {
     private val DISABLE_RENDERING_TOOLTIP: Text = Text.translatable("options.phantomshapes.disable_render.tooltip")
@@ -19,7 +20,7 @@ class Options {
     var drawOnBlocks: SimpleOption<Boolean> = SimpleOption.ofBoolean(
         "options.phantomshapes.draw_on_blocks",
         SimpleOption.constantTooltip(DRAW_ON_BLOCKS_TOOLTIP),
-        true
+        false
     )
 
     private val DRAW_ONLY_EDGES_TOOLTIP: Text = Text.translatable("options.phantomshapes.draw_only_edges.tooltip")
@@ -31,7 +32,7 @@ class Options {
 
     // Try loading options from file
     init {
-        val jsonString = SavedDataManager.readFromFile("writeToFile.json", true)
+        val jsonString = SavedDataManager.readFromFile("phantomshapes.json", true)
         if (jsonString != null) {
             val json = Json.decodeFromString(JsonObject.serializer(), jsonString)
             disableRender.value = json["disableRender"]!!.toString().toBoolean()

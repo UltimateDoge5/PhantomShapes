@@ -9,10 +9,12 @@ import net.minecraft.util.Colors
 import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
+import org.pkozak.PhantomShapesClient.PIN_ICON
 import org.pkozak.Shape
 import org.pkozak.ShapeType
 import org.pkozak.shape.*
 import org.pkozak.ui.RotationSlider
+import java.awt.Button
 import java.awt.Color
 
 class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
@@ -34,11 +36,11 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
     private var radiusInput: TextFieldWidget? = null
 
     private var confirmBtn: ButtonWidget? = null
+    private var centerBtn: ButtonWidget? = null
     private var rotationInput: RotationSlider? = null
 
     private var errorText = ""
     private var shapeType: ShapeType = ShapeType.CUBE
-    private var rotation = 0.0
 
     override fun init() {
         super.init()
@@ -78,6 +80,13 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
 
         confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) { createOrEditShape() }
             .dimensions(width / 2 - 100, 180, 200, 20).build()
+
+        centerBtn = ButtonWidget.builder(Text.empty()) {
+            xCoordsInput!!.text = client?.player?.x?.toInt().toString()
+            yCoordsInput!!.text = client?.player?.y?.toInt().toString()
+            zCoordsInput!!.text = client?.player?.z?.toInt().toString()
+        }
+            .dimensions(width / 3 - 25 + 108, 100, 20, 20).build()
 
 
         shapeTypeInput = ButtonWidget.builder(Text.literal("Cube")) {
@@ -173,16 +182,22 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 }
 
                 ShapeType.ARCH -> {
-                    radiusInput!!.text = (editedShape as ArchBridge).radius.toString()
+                    radiusInput!!.text = (editedShape as Arch).radius.toString()
                     heightInput!!.text = editedShape.width.toString()
                     rotationInput!!.setAngle(editedShape.rotation)
                 }
             }
 
+            // Setup listeners for live position updates
+            xCoordsInput!!.setChangedListener { onCoordinatesChange() }
+            yCoordsInput!!.setChangedListener { onCoordinatesChange() }
+            zCoordsInput!!.setChangedListener { onCoordinatesChange() }
+
             onShapeTypeChange()
         }
 
         addDrawableChild(confirmBtn)
+        addDrawableChild(centerBtn)
         addDrawableChild(shapeNameInput)
         addDrawableChild(shapeTypeInput)
         addDrawableChild(xCoordsInput)
@@ -220,6 +235,8 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             0xFFFFFF,
             true
         )
+
+        context.drawGuiTexture(PIN_ICON,centerBtn!!.x + 2, centerBtn!!.y + 2, 16, 16)
 
         context.drawText(
             textRenderer,
@@ -394,7 +411,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             ShapeType.TUNNEL -> {
                 val radius = radiusInput!!.text.toInt()
                 val height = heightInput!!.text.toInt()
-                Tunnel(name, color, pos, radius, height).apply{
+                Tunnel(name, color, pos, radius, height).apply {
                     rotation = rotationInput!!.getAngle()
                 }
             }
@@ -402,7 +419,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             ShapeType.ARCH -> {
                 val radius = radiusInput!!.text.toInt()
                 val width = heightInput!!.text.toInt()
-                ArchBridge(name, color, pos, radius, width).apply{
+                Arch(name, color, pos, radius, width).apply {
                     rotation = rotationInput!!.getAngle()
                 }
             }
@@ -421,84 +438,85 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
         close()
     }
 
-    private fun validateShape() {
+    private fun validateShape(): Boolean {
         if (shapeNameInput!!.text.isEmpty()) {
             errorText = "Shape name cannot be empty"
-            return
+            return false
         }
 
         if (shapeNameInput!!.text.length > 16) {
             errorText = "Shape name cannot be longer than 16 characters"
-            return
+            return false
         }
 
         if (editedShape == null && parent.shapes.any { it.name == shapeNameInput!!.text }) {
             errorText = "Shape with this name already exists"
-            return
+            return false
         }
 
         if (xCoordsInput!!.text.isEmpty() || yCoordsInput!!.text.isEmpty() || zCoordsInput!!.text.isEmpty()) {
             errorText = "Coordinates cannot be empty"
-            return
+            return false
         }
 
         if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
             errorText = "Color cannot be empty"
-            return
+            return false
         }
 
         if (shapeType == ShapeType.CUBE) {
             if (widthInput!!.text.isEmpty() || heightInput!!.text.isEmpty() || depthInput!!.text.isEmpty()) {
                 errorText = "Dimensions cannot be empty"
-                return
+                return false
             }
 
             try {
                 if (widthInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0 || depthInput!!.text.toInt() <= 0) {
                     errorText = "Dimensions must be greater than 0"
-                    return
+                    return false
                 }
             } catch (e: NumberFormatException) {
                 errorText = "Dimensions must be numbers"
-                return
+                return false
             }
         }
 
         if (shapeType == ShapeType.SPHERE) {
             if (radiusInput!!.text.isEmpty()) {
                 errorText = "Radius cannot be empty"
-                return
+                return false
             }
 
             try {
                 if (radiusInput!!.text.toInt() <= 0) {
                     errorText = "Radius must be greater than 0"
-                    return
+                    return false
                 }
             } catch (e: NumberFormatException) {
                 errorText = "Radius must be a number"
-                return
+                return false
             }
         }
 
         if (shapeType == ShapeType.CYLINDER) {
             if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
                 errorText = "Radius and height cannot be empty"
-                return
+                return false
             }
 
             try {
                 if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
                     errorText = "Radius and height must be greater than 0"
-                    return
+                    return false
                 }
             } catch (e: NumberFormatException) {
                 errorText = "Radius and height must be numbers"
-                return
+                return false
             }
         }
 
         errorText = ""
+        return true
     }
 
     private fun onShapeTypeChange() {
@@ -535,6 +553,23 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
                 addDrawableChild(rotationInput)
             }
         }
+    }
+
+    private fun onCoordinatesChange() {
+        if (xCoordsInput!!.text.isEmpty() || yCoordsInput!!.text.isEmpty() || zCoordsInput!!.text.isEmpty()) {
+            return
+        }
+
+        try {
+            xCoordsInput!!.text.toDouble()
+            yCoordsInput!!.text.toDouble()
+            zCoordsInput!!.text.toDouble()
+        } catch (e: NumberFormatException) {
+            return
+        }
+
+        val vec = Vec3d(xCoordsInput!!.text.toDouble(), yCoordsInput!!.text.toDouble(), zCoordsInput!!.text.toDouble())
+        editedShape?.pos = vec
     }
 
     private fun hideDimensionInputs() {

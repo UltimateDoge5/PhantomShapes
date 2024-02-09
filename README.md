@@ -11,6 +11,7 @@ becomes an ease, thanks to the inclusion of diverse shapes like cubes, spheres, 
 - *Spheres*
 - *Cylinders*
 - *Tunnels*
+- *Arches*
 
 And even more are coming!
 
