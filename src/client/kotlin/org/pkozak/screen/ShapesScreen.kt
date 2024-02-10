@@ -21,7 +21,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 26, shapes)
         shapeListWidget!!.x = 0
 
-        addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(NewShapeScreen(this, null)) }
+        addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(ShapeEditorScreen(this, null)) }
             .dimensions(width / 2 - 205, height - 40, 200, 20)
             .tooltip(Tooltip.of(Text.literal("Create a new phantom shape"))).build()
         closeBtn = ButtonWidget.builder(ScreenTexts.DONE) { close() }

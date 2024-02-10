@@ -2,6 +2,7 @@ package org.pkozak.util
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
@@ -47,7 +48,7 @@ class SavedDataManager {
             return shapes
         }
 
-        fun readFromFile(s: String, configDir:Boolean = false): String? {
+        fun readFromFile(s: String, configDir: Boolean = false): String? {
             val dir = FabricLoader.getInstance().configDir.resolve(if (configDir) "" else "shapes")
             val file = File(dir.toFile(), s)
 
@@ -115,6 +116,24 @@ class SavedDataManager {
             }
 
             return false
+        }
+
+        fun toSafeDouble(obj: JsonObject, key: String, fallback: Double): Double {
+            return try {
+                obj[key].toString().toDouble()
+            } catch (e: Exception) {
+                logger.warn("Failed to parse double from key: $key. Using fallback value")
+                fallback
+            }
+        }
+
+        fun toSafeBoolean(obj: JsonObject, key: String, fallback: Boolean): Boolean {
+            return try {
+                obj[key].toString().toBoolean()
+            } catch (e: Exception) {
+                logger.warn("Failed to parse boolean from key: $key. Using fallback value")
+                fallback
+            }
         }
     }
 }

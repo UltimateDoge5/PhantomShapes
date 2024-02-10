@@ -1,8 +1,9 @@
 {
   "category.phantomshapes.controls": "Phantom Shapes",
   "key.phantomshapes.menu": "Shape menu",
-  "options.phantomshapes.disable_render": "Disable rendering",
-  "options.phantomshapes.disable_render.tooltip": "Globally disables rendering of all phantom shapes",
+  "key.phantomshapes.toggle_render": "Toggle shape rendering",
+  "options.phantomshapes.enable_render": "Shape rendering",
+  "options.phantomshapes.enable_render.tooltip": "Whether to enable rendering of Phantom shapes",
   "options.phantomshapes.draw_on_blocks": "Draw on blocks",
   "options.phantomshapes.draw_on_blocks.tooltip": "Draw phantom shapes on blocks other than air",
   "options.phantomshapes.draw_only_edges": "Draw only edges",

@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.shape.*
+import org.pkozak.util.SavedDataManager.Companion.toSafeDouble
 import java.awt.Color
 
 abstract class Shape {
@@ -34,10 +35,10 @@ abstract class Shape {
 
         // TODO: Make this safer - it's not safe to assume that the JsonObject will always contain the required fields
         fun fromJsonObject(json: JsonObject): Shape {
-            val type = ShapeType.valueOf(
-                json["type"].toString().replace("\"", "")
-            ) // For some reason, the type is wrapped in quotes
+            // For some reason, the type is wrapped in quotes
+            val type = ShapeType.valueOf(json["type"].toString().replace("\"", ""))
             val name = json["name"].toString().replace("\"", "") // Same here
+
             val color = Color(json["color"].toString().toInt())
             val pos = Vec3d(
                 (json["pos"] as JsonObject)["x"].toString().toDouble(),
@@ -81,7 +82,7 @@ abstract class Shape {
                 ShapeType.TUNNEL -> {
                     val radius = json["radius"].toString().toInt()
                     val height = json["height"].toString().toInt()
-                    val rotation = json["rotation"].toString().toDouble()
+                    val rotation = toSafeDouble(json, "rotation", 0.0)
 
                     Tunnel(name, color, pos, radius, height).apply {
                         this.rotation = rotation
@@ -91,7 +92,7 @@ abstract class Shape {
                 ShapeType.ARCH -> {
                     val radius = json["radius"].toString().toInt()
                     val width = json["width"].toString().toInt()
-                    val rotation = json["rotation"].toString().toDouble()
+                    val rotation = toSafeDouble(json, "rotation", 0.0)
 
                     Arch(name, color, pos, radius, width).apply {
                         this.rotation = rotation

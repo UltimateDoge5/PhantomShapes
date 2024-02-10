@@ -3,7 +3,6 @@ package org.pkozak
 import me.x150.renderer.event.RenderEvents
 import me.x150.renderer.render.Renderer3d
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
@@ -11,7 +10,6 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
@@ -81,14 +79,14 @@ object PhantomShapesClient : ClientModInitializer {
             }
 
             while (toggleRenderKeyBinding.wasPressed()) {
-                options.disableRender.value = !options.disableRender.value
+                options.renderShapes.value = !options.renderShapes.value
             }
         })
     }
 
     // Render shapes from the cache
     private fun onWorldRendered(matrix: MatrixStack) {
-        if (options.disableRender.value) return
+        if (!options.renderShapes.value) return
 
         for (shape in shapes) {
             val playerPos = MinecraftClient.getInstance().player?.pos

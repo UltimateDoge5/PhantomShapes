@@ -14,10 +14,9 @@ import org.pkozak.Shape
 import org.pkozak.ShapeType
 import org.pkozak.shape.*
 import org.pkozak.ui.RotationSlider
-import java.awt.Button
 import java.awt.Color
 
-class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
+class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
     Screen(Text.literal("Shape editor")) {
     private var shapeNameInput: TextFieldWidget? = null
     private var shapeTypeInput: ButtonWidget? = null // OptionListWidget is too complex and not worth the time
@@ -194,7 +193,15 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             zCoordsInput!!.setChangedListener { onCoordinatesChange() }
 
             onShapeTypeChange()
+        } else {
+            // Draw the inputs for the cube by default
+            addDrawableChild(widthInput)
+            addDrawableChild(depthInput)
+            addDrawableChild(heightInput)
         }
+
+
+
 
         addDrawableChild(confirmBtn)
         addDrawableChild(centerBtn)
@@ -236,7 +243,7 @@ class NewShapeScreen(private val parent: ShapesScreen, private val editedShape: 
             true
         )
 
-        context.drawGuiTexture(PIN_ICON,centerBtn!!.x + 2, centerBtn!!.y + 2, 16, 16)
+        context.drawGuiTexture(PIN_ICON, centerBtn!!.x + 2, centerBtn!!.y + 2, 16, 16)
 
         context.drawText(
             textRenderer,

@@ -13,7 +13,6 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.math.ColorHelper
 import org.pkozak.PhantomShapesClient.INVISIBLE_ICON
 import org.pkozak.PhantomShapesClient.VISIBLE_ICON
-import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.Shape
 
 class ShapeListEntry(
@@ -24,7 +23,7 @@ class ShapeListEntry(
     private var toggleBtn: ButtonWidget? = null
 
     init {
-        editBtn = ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(NewShapeScreen(widget.parent, shape)) }
+        editBtn = ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(ShapeEditorScreen(widget.parent, shape)) }
             .dimensions(360, 0, 50, 32).build()
 
         deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
@@ -48,11 +47,7 @@ class ShapeListEntry(
         hovered: Boolean,
         tickDelta: Float
     ) {
-        // Mojang does that in widgets, so I'll do it too
         val l = y + (entryHeight - client.textRenderer.fontHeight) / 2
-        val i = x + 4
-        val j = y + (entryHeight - 24) / 2
-        val k = i + 24 + 4
 
         if (index % 2 == 0) {
             context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(32, 0, 0, 0))

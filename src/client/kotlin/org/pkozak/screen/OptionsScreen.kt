@@ -15,7 +15,7 @@ class OptionsScreen(private val parent: Screen, private var options: Options) :
         super.init()
         list = addDrawableChild(OptionListWidget(this.client, this.width, this.height - 64, 32, 25))
 
-        list.addSingleOptionEntry(options.disableRender)
+        list.addSingleOptionEntry(options.renderShapes)
         list.addSingleOptionEntry(options.drawOnBlocks)
         list.addSingleOptionEntry(options.drawOnlyEdges)
 

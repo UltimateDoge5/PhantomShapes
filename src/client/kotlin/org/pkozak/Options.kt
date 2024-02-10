@@ -7,13 +7,14 @@ import kotlinx.serialization.json.put
 import net.minecraft.client.option.SimpleOption
 import net.minecraft.text.Text
 import org.pkozak.util.SavedDataManager
+import org.pkozak.util.SavedDataManager.Companion.toSafeBoolean
 
 class Options {
-    private val DISABLE_RENDERING_TOOLTIP: Text = Text.translatable("options.phantomshapes.disable_render.tooltip")
-    var disableRender: SimpleOption<Boolean> = SimpleOption.ofBoolean(
-        "options.phantomshapes.disable_render",
-        SimpleOption.constantTooltip(DISABLE_RENDERING_TOOLTIP),
-        false
+    private val RENDERING_TOOLTIP: Text = Text.translatable("options.phantomshapes.enable_render.tooltip")
+    var renderShapes: SimpleOption<Boolean> = SimpleOption.ofBoolean(
+        "options.phantomshapes.enable_render",
+        SimpleOption.constantTooltip(RENDERING_TOOLTIP),
+        true
     )
 
     private val DRAW_ON_BLOCKS_TOOLTIP: Text = Text.translatable("options.phantomshapes.draw_on_blocks.tooltip")
@@ -30,20 +31,20 @@ class Options {
         false
     )
 
-    // Try loading options from file
+    // Try loading options from file, upon not finding a value, use the default as a fallback
     init {
         val jsonString = SavedDataManager.readFromFile("phantomshapes.json", true)
         if (jsonString != null) {
             val json = Json.decodeFromString(JsonObject.serializer(), jsonString)
-            disableRender.value = json["disableRender"]!!.toString().toBoolean()
-            drawOnBlocks.value = json["drawOnBlocks"]!!.toString().toBoolean()
-            drawOnlyEdges.value = json["drawOnlyEdges"]!!.toString().toBoolean()
+            renderShapes.value = toSafeBoolean(json, "enableRender", this.renderShapes.value)
+            drawOnBlocks.value = toSafeBoolean(json, "drawOnBlocks", this.drawOnBlocks.value)
+            drawOnlyEdges.value = toSafeBoolean(json, "drawOnlyEdges", this.drawOnlyEdges.value)
         }
     }
 
     fun saveToFile() {
         val json = buildJsonObject {
-            put("disableRender", disableRender.value)
+            put("disableRender", renderShapes.value)
             put("drawOnBlocks", drawOnBlocks.value)
             put("drawOnlyEdges", drawOnlyEdges.value)
         }
