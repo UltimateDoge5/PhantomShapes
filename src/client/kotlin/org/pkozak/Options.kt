@@ -21,7 +21,7 @@ class Options {
     var drawOnBlocks: SimpleOption<Boolean> = SimpleOption.ofBoolean(
         "options.phantomshapes.draw_on_blocks",
         SimpleOption.constantTooltip(DRAW_ON_BLOCKS_TOOLTIP),
-        false
+        false,
     )
 
     private val DRAW_ONLY_EDGES_TOOLTIP: Text = Text.translatable("options.phantomshapes.draw_only_edges.tooltip")

@@ -7,6 +7,7 @@ import net.minecraft.client.gui.widget.OptionListWidget
 import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
 import org.pkozak.Options
+import org.pkozak.PhantomShapesClient.rerenderAllShapes
 
 class OptionsScreen(private val parent: Screen, private var options: Options) :
     Screen(Text.literal("Phantom Shapes Options")) {
@@ -37,6 +38,7 @@ class OptionsScreen(private val parent: Screen, private var options: Options) :
     }
 
     override fun close() {
+        rerenderAllShapes()
         options.saveToFile()
         client?.setScreen(parent)
     }
