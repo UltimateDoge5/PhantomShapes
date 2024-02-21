@@ -19,7 +19,7 @@ class Cylinder(
 ) : Shape() {
     override val type = ShapeType.CYLINDER
 
-    override fun render(): MutableSet<Vec3d> {
+    override fun generateBlocks(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
         val invRadius: Double = 1 / (radius + 0.5)

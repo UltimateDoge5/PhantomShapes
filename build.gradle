@@ -13,22 +13,8 @@ base {
 }
 
 repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
     maven { url 'https://jitpack.io' }
     maven { url "https://maven.terraformersmc.com/" } // Mod Menu
-    maven {
-        name = 'Ladysnake Mods'
-        url = 'https://maven.ladysnake.org/releases'
-        content {
-            includeGroup 'io.github.ladysnake'
-            includeGroup 'org.ladysnake'
-            includeGroupByRegex 'dev\\.onyxstudios.*'
-        }
-    }
 }
 
 loom {
@@ -40,7 +26,6 @@ loom {
             sourceSet sourceSets.client
         }
     }
-
 }
 
 dependencies {
@@ -54,13 +39,11 @@ dependencies {
     // Uncomment the following line to enable the deprecated Fabric API modules.
     // These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 
-    include modImplementation("com.github.0x3C50:Renderer:master-SNAPSHOT")
     modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}", {
         exclude module: 'fabric-api'
     }
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
-    // modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 }
 
 processResources {
@@ -73,12 +56,6 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 17
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    kotlinOptions {
-        jvmTarget = 17
-    }
 }
 
 java {

@@ -20,7 +20,7 @@ class Arch(
     val width: Int
 ) : Shape() {
     override val type = ShapeType.ARCH
-    override fun render(): MutableSet<Vec3d> {
+    override fun generateBlocks(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
         // Render the full tunnel (cylinder but lying down)

@@ -12,7 +12,7 @@ class Cube(
 ) : Shape() {
     override val type = ShapeType.CUBE
 
-    override fun render(): MutableSet<Vec3d> {
+    override fun generateBlocks(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
 

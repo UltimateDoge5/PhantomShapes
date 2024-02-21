@@ -1,24 +1,30 @@
 package org.pkozak
 
-import me.x150.renderer.event.RenderEvents
-import me.x150.renderer.render.Renderer3d
+import com.mojang.blaze3d.systems.RenderSystem
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gl.VertexBuffer
 import net.minecraft.client.option.KeyBinding
+import net.minecraft.client.render.GameRenderer
+import net.minecraft.client.render.Tessellator
+import net.minecraft.client.render.VertexFormat.DrawMode
+import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Vec3d
+import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.opengl.GL11
 import org.pkozak.screen.ShapesScreen
 import org.pkozak.util.SavedDataManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.awt.Color
 
 
 object PhantomShapesClient : ClientModInitializer {
@@ -39,13 +45,11 @@ object PhantomShapesClient : ClientModInitializer {
     var overwriteProtection = false
 
     private var shapes = mutableListOf<Shape>()
+    private var vboMap = mutableMapOf<String, VertexBuffer>()
 
     private var menuKeyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
-            "key.phantomshapes.menu",
-            InputUtil.Type.KEYSYM,
-            GLFW.GLFW_KEY_P,
-            "category.phantomshapes.controls"
+            "key.phantomshapes.menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_P, "category.phantomshapes.controls"
         )
     )
 
@@ -59,7 +63,11 @@ object PhantomShapesClient : ClientModInitializer {
     )
 
     override fun onInitializeClient() {
-        RenderEvents.WORLD.register { matrixStack -> onWorldRendered(matrixStack) }
+        WorldRenderEvents.LAST.register {
+            val matrixStack = it.matrixStack()
+            val projectionMatrix = it.projectionMatrix()
+            onWorldRendered(matrixStack, projectionMatrix)
+        }
 
         // Load shapes from file when the world is loaded
         ServerWorldEvents.LOAD.register(ServerWorldEvents.Load { _, _ ->
@@ -71,6 +79,15 @@ object PhantomShapesClient : ClientModInitializer {
                 logger.info("Locking the file to prevent overwriting it")
                 overwriteProtection = true
             }
+
+            for (shape in shapes) {
+                shape.shouldRerender = true
+            }
+        })
+
+        ServerWorldEvents.UNLOAD.register(ServerWorldEvents.Unload { _, _ ->
+            vboMap.clear()
+            shapes.clear()
         })
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
@@ -80,40 +97,155 @@ object PhantomShapesClient : ClientModInitializer {
 
             while (toggleRenderKeyBinding.wasPressed()) {
                 options.renderShapes.value = !options.renderShapes.value
+                client.player?.sendMessage(
+                    Text.literal(
+                        if (options.renderShapes.value) "Shapes are now visible"
+                        else "Shapes are now hidden"
+                    ), true
+                )
             }
         })
     }
 
-    // Render shapes from the cache
-    private fun onWorldRendered(matrix: MatrixStack) {
+    private fun onWorldRendered(matrixStack: MatrixStack, projectionMatrix: Matrix4f) {
         if (!options.renderShapes.value) return
 
+        matrixStack.push()
+        RenderSystem.enableBlend()
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
+        RenderSystem.enableDepthTest()
+        RenderSystem.depthFunc(GL11.GL_LEQUAL)
+//        RenderSystem.enableDepthTest()
+//        RenderSystem.enableCull()
+        RenderSystem.disableCull()
+        RenderSystem.depthMask(false)
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram)
+
+        renderShapeBlocks(matrixStack, projectionMatrix)
+
+        RenderSystem.disableBlend()
+//        RenderSystem.depthMask(true)
+//        RenderSystem.disableDepthTest()
+//        RenderSystem.defaultBlendFunc()
+        RenderSystem.enableCull()
+        RenderSystem.depthMask(true);
+        matrixStack.pop()
+    }
+
+    private fun renderShapeBlocks(matrixStack: MatrixStack, projectionMatrix: Matrix4f) {
+        val playerPos = MinecraftClient.getInstance().player?.pos
+        val camera = client.gameRenderer.camera
+        val posMatrix = matrixStack.peek().positionMatrix
+            .translate(
+                -(camera.pos.x).toFloat(),
+                -(camera.pos.y).toFloat(),
+                -(camera.pos.z).toFloat()
+            )
+
         for (shape in shapes) {
-            val playerPos = MinecraftClient.getInstance().player?.pos
             val distance = shape.pos.distanceTo(playerPos)
             val renderDistance = MinecraftClient.getInstance().options.viewDistance.value * 16
 
             // Skip rendering if the shape is disabled or too far away
             if (!shape.enabled || distance > renderDistance) continue
 
-            val blocks = shape.render()
-            val fillColor = Color(shape.color.red, shape.color.green, shape.color.blue, 50)
-            for (cube in blocks) {
-                // Check if the cube is inside a block
-                if (!options.drawOnBlocks.value) {
-                    val blockPos = BlockPos(cube.x.toInt(), cube.y.toInt(), cube.z.toInt())
-                    if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+            matrixStack.push()
+
+            val rotatedMatrix = Matrix4f()
+                .translate(
+                    -(camera.pos.x).toFloat(),
+                    -(camera.pos.y).toFloat(),
+                    -(camera.pos.z).toFloat()
+                )
+
+            // Shape data changed, rerender the VBO
+            if (shape.shouldRerender) {
+                val buffer = Tessellator.getInstance().buffer
+                buffer.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+
+                val blocks = shape.generateBlocks()
+
+                // Add vertices directly to the buffer
+                for (block in blocks) {
+                    if (!options.drawOnBlocks.value) {
+                        val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
+                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                    }
+
+                    val start = block.add(client.gameRenderer.camera.pos)
+                    val end = start.add(1.0, 1.0, 1.0)
+
+                    val x1 = start.x.toFloat()
+                    val y1 = start.y.toFloat()
+                    val z1 = start.z.toFloat()
+                    val x2 = end.x.toFloat()
+                    val y2 = end.y.toFloat()
+                    val z2 = end.z.toFloat()
+
+                    val redFill = shape.color.red.toFloat() / 255
+                    val greenFill = shape.color.green.toFloat() / 255
+                    val blueFill = shape.color.blue.toFloat() / 255
+                    val alphaFill = 0.4f
+
+                    buffer.vertex(rotatedMatrix, x1, y2, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y2, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y2, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y2, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+
+                    buffer.vertex(rotatedMatrix, x1, y1, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y1, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y2, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y2, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+
+                    buffer.vertex(rotatedMatrix, x2, y2, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y1, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y1, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y2, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+
+                    buffer.vertex(rotatedMatrix, x2, y2, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y1, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y1, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y2, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+
+                    buffer.vertex(rotatedMatrix, x1, y2, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y1, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y1, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y2, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+
+                    buffer.vertex(rotatedMatrix, x1, y1, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y1, z1).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x2, y1, z2).color(redFill, greenFill, blueFill, alphaFill).next()
+                    buffer.vertex(rotatedMatrix, x1, y1, z2).color(redFill, greenFill, blueFill, alphaFill).next()
                 }
 
-                if (options.drawOnlyEdges.value) Renderer3d.renderOutline(
-                    matrix,
-                    shape.color,
-                    cube,
-                    Vec3d(1.0, 1.0, 1.0)
-                )
-                else
-                    Renderer3d.renderEdged(matrix, fillColor, shape.color, cube, Vec3d(1.0, 1.0, 1.0))
+                val builtBuffer = buffer.end()
+
+                if (vboMap[shape.name] == null) {
+                    val vbo = VertexBuffer(VertexBuffer.Usage.STATIC)
+                    vbo.bind()
+                    vbo.upload(builtBuffer)
+                    VertexBuffer.unbind()
+                    vboMap[shape.name] = vbo
+                } else {
+                    val vbo = vboMap[shape.name]!!
+                    vbo.bind()
+                    vbo.upload(builtBuffer)
+                    VertexBuffer.unbind()
+                }
+
+                matrixStack.pop()
+                shape.shouldRerender = false
             }
+
+            // Render the VBO
+            val vbo = vboMap[shape.name] ?: throw RuntimeException("VBO is null, this should not happen!")
+            vbo.bind()
+            vbo.draw(
+                posMatrix,
+                projectionMatrix,
+                RenderSystem.getShader()
+            )
+            VertexBuffer.unbind()
         }
     }
 }

@@ -22,7 +22,7 @@ class Sphere(
 
     private val positions = mutableSetOf<Vec3d>()
 
-    override fun render(): MutableSet<Vec3d> {
+    override fun generateBlocks(): MutableSet<Vec3d> {
         val invRadius: Double = 1 / (radius.toDouble() + 0.5)
         val ceilRadius = ceil(radius + 0.5).toInt()
 

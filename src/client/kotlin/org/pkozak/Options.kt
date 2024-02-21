@@ -44,7 +44,7 @@ class Options {
 
     fun saveToFile() {
         val json = buildJsonObject {
-            put("disableRender", renderShapes.value)
+            put("enableRender", renderShapes.value)
             put("drawOnBlocks", drawOnBlocks.value)
             put("drawOnlyEdges", drawOnlyEdges.value)
         }

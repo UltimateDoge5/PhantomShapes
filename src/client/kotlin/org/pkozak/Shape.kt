@@ -14,11 +14,13 @@ abstract class Shape {
     abstract val type: ShapeType
     var enabled = true
     var rotation = 0.0
+    var shouldRerender = true
 
-    abstract fun render(): MutableSet<Vec3d>
+    abstract fun generateBlocks(): MutableSet<Vec3d>
 
     fun toggleVisibility() {
         enabled = !enabled
+        shouldRerender = true
     }
 
     fun getIcon() = when (type) {
@@ -32,7 +34,6 @@ abstract class Shape {
     abstract fun toJsonObject(): JsonObject
 
     companion object {
-
         // TODO: Make this safer - it's not safe to assume that the JsonObject will always contain the required fields
         fun fromJsonObject(json: JsonObject): Shape {
             // For some reason, the type is wrapped in quotes

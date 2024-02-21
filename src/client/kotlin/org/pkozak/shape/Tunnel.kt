@@ -22,7 +22,7 @@ class Tunnel(
     override val type = ShapeType.TUNNEL
 
 
-    override fun render(): MutableSet<Vec3d> {
+    override fun generateBlocks(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
         // Render the full tunnel (cylinder but lying down)
