@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
 import org.pkozak.PhantomShapesClient
-import org.pkozak.Shape
+import org.pkozak.shape.Shape
 import org.pkozak.util.SavedDataManager
 import java.awt.Color
 

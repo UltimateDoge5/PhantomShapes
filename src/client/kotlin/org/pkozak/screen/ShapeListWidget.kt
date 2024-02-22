@@ -2,7 +2,7 @@ package org.pkozak.screen
 
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.widget.ElementListWidget
-import org.pkozak.Shape
+import org.pkozak.shape.Shape
 import kotlin.math.max
 
 class ShapeListWidget(

@@ -3,8 +3,6 @@ package org.pkozak.shape
 import kotlinx.serialization.json.*
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
-import org.pkozak.Shape
-import org.pkozak.ShapeType
 import java.awt.Color
 
 class Cube(

@@ -1,9 +1,9 @@
-package org.pkozak
+package org.pkozak.shape
 
 import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
-import org.pkozak.shape.*
+import org.pkozak.PhantomShapesClient
 import org.pkozak.util.SavedDataManager.Companion.toSafeDouble
 import java.awt.Color
 

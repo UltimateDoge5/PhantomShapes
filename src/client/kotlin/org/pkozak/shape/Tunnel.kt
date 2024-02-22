@@ -5,8 +5,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
 import org.pkozak.util.MathUtil
-import org.pkozak.Shape
-import org.pkozak.ShapeType
 import java.awt.Color
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -16,9 +14,9 @@ class Tunnel(
     override val name: String,
     override var color: Color,
     override var pos: Vec3d,
-    val radius: Int,
-    val height: Int
-) : Shape() {
+    override var radius: Int,
+    var height: Int
+) : RadialShape() {
     override val type = ShapeType.TUNNEL
 
 

@@ -8,7 +8,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.WorldSavePath
 import org.pkozak.PhantomShapesClient.logger
-import org.pkozak.Shape
+import org.pkozak.shape.Shape
 import java.io.*
 
 

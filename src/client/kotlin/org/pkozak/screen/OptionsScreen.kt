@@ -12,6 +12,7 @@ import org.pkozak.PhantomShapesClient.rerenderAllShapes
 class OptionsScreen(private val parent: Screen, private var options: Options) :
     Screen(Text.literal("Phantom Shapes Options")) {
     private lateinit var list: OptionListWidget
+
     override fun init() {
         super.init()
         list = addDrawableChild(OptionListWidget(this.client, this.width, this.height - 64, 32, 25))
@@ -31,14 +32,15 @@ class OptionsScreen(private val parent: Screen, private var options: Options) :
         )
     }
 
-
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(context, mouseX, mouseY, delta)
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF)
     }
 
     override fun close() {
-        rerenderAllShapes()
+        if (client?.world != null) {
+            rerenderAllShapes()
+        }
         options.saveToFile()
         client?.setScreen(parent)
     }

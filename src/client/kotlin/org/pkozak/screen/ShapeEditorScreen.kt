@@ -10,8 +10,8 @@ import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.PhantomShapesClient.PIN_ICON
-import org.pkozak.Shape
-import org.pkozak.ShapeType
+import org.pkozak.shape.Shape
+import org.pkozak.shape.ShapeType
 import org.pkozak.shape.*
 import org.pkozak.ui.RotationSlider
 import java.awt.Color
@@ -77,7 +77,10 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         blueInput!!.setPlaceholder(Text.literal("Blue"))
         blueInput!!.text = "255"
 
-        confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) { createOrEditShape() }
+        confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) {
+            if (editedShape == null) createShape()
+            close()
+        }
             .dimensions(width / 2 - 100, 180, 200, 20).build()
 
         centerBtn = ButtonWidget.builder(Text.empty()) {
@@ -86,7 +89,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             zCoordsInput!!.text = client?.player?.z?.toInt().toString()
         }
             .dimensions(width / 3 - 25 + 108, 100, 20, 20).build()
-
 
         shapeTypeInput = ButtonWidget.builder(Text.literal("Cube")) {
             when (shapeTypeInput!!.message.asTruncatedString(8).lowercase()) {
@@ -141,6 +143,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         rotationInput = RotationSlider(width / 3 + 108 + 20 + 108, 100, 75, 20) { value: Double ->
             if (editedShape != null) {
                 editedShape.rotation = value
+                editedShape.shouldRerender = true
             }
         }
 
@@ -157,6 +160,17 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
             shapeType = editedShape.type
             shapeTypeInput!!.message = Text.literal(shapeType.name.uppercase())
+            shapeTypeInput!!.active = false
+
+            // Setup listeners for live position updates
+            xCoordsInput!!.setChangedListener { onCoordinatesChange() }
+            yCoordsInput!!.setChangedListener { onCoordinatesChange() }
+            zCoordsInput!!.setChangedListener { onCoordinatesChange() }
+
+            // Color listeners
+            redInput!!.setChangedListener { onColorChange() }
+            greenInput!!.setChangedListener { onColorChange() }
+            blueInput!!.setChangedListener { onColorChange() }
 
             when (shapeType) {
                 ShapeType.CUBE -> {
@@ -167,41 +181,78 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
                 ShapeType.SPHERE -> {
                     radiusInput!!.text = (editedShape as Sphere).radius.toString()
+                    radiusInput!!.setChangedListener {
+                        onRadiusChange()
+                    }
                 }
 
                 ShapeType.CYLINDER -> {
                     radiusInput!!.text = (editedShape as Cylinder).radius.toString()
                     heightInput!!.text = editedShape.height.toString()
+                    radiusInput!!.setChangedListener {
+                        onRadiusChange()
+                    }
+                    heightInput!!.setChangedListener {
+                        if (heightInput!!.text.isEmpty()) return@setChangedListener
+                        try {
+                            heightInput!!.text.toInt()
+                        } catch (e: NumberFormatException) {
+                            return@setChangedListener
+                        }
+
+                        editedShape.height = heightInput!!.text.toInt()
+                        editedShape.shouldRerender = true
+                    }
                 }
 
                 ShapeType.TUNNEL -> {
                     radiusInput!!.text = (editedShape as Tunnel).radius.toString()
                     heightInput!!.text = editedShape.height.toString()
                     rotationInput!!.setAngle(editedShape.rotation)
+                    radiusInput!!.setChangedListener {
+                        onRadiusChange()
+                    }
+                    heightInput!!.setChangedListener {
+                        if (heightInput!!.text.isEmpty()) return@setChangedListener
+                        try {
+                            heightInput!!.text.toInt()
+                        } catch (e: NumberFormatException) {
+                            return@setChangedListener
+                        }
+
+                        editedShape.height = heightInput!!.text.toInt()
+                        editedShape.shouldRerender = true
+                    }
                 }
 
                 ShapeType.ARCH -> {
                     radiusInput!!.text = (editedShape as Arch).radius.toString()
                     heightInput!!.text = editedShape.width.toString()
                     rotationInput!!.setAngle(editedShape.rotation)
+                    radiusInput!!.setChangedListener {
+                        onRadiusChange()
+                    }
+                    heightInput!!.setChangedListener {
+                        if (heightInput!!.text.isEmpty()) return@setChangedListener
+                        try {
+                            heightInput!!.text.toInt()
+                        } catch (e: NumberFormatException) {
+                            return@setChangedListener
+                        }
+
+                        editedShape.width = heightInput!!.text.toInt()
+                        editedShape.shouldRerender = true
+                    }
                 }
             }
-
-            // Setup listeners for live position updates
-            xCoordsInput!!.setChangedListener { onCoordinatesChange() }
-            yCoordsInput!!.setChangedListener { onCoordinatesChange() }
-            zCoordsInput!!.setChangedListener { onCoordinatesChange() }
-
             onShapeTypeChange()
         } else {
             // Draw the inputs for the cube by default
+            shapeTypeInput!!.active = true
             addDrawableChild(widthInput)
             addDrawableChild(depthInput)
             addDrawableChild(heightInput)
         }
-
-
-
 
         addDrawableChild(confirmBtn)
         addDrawableChild(centerBtn)
@@ -386,7 +437,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         context.fill(blueInput!!.x + 55, blueInput!!.y + 1, blueInput!!.x + 55 + 18, blueInput!!.y + 19, color.rgb)
     }
 
-    private fun createOrEditShape() {
+    private fun createShape() {
         val name = shapeNameInput!!.text
         val x = xCoordsInput!!.text.toDouble()
         val y = yCoordsInput!!.text.toDouble()
@@ -432,17 +483,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             }
         }
 
-        if (editedShape !== null) {
-            val shapeIndex = parent.shapes.indexOfFirst { it.name == editedShape.name }
-            if (shapeIndex == -1) {
-                errorText = "Shape could not be edited"
-                return
-            }
-            parent.shapes[shapeIndex] = newShape
-        } else {
-            parent.addShape(newShape)
-        }
-        close()
+        parent.addShape(newShape)
     }
 
     private fun validateShape(): Boolean {
@@ -577,6 +618,37 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
         val vec = Vec3d(xCoordsInput!!.text.toDouble(), yCoordsInput!!.text.toDouble(), zCoordsInput!!.text.toDouble())
         editedShape?.pos = vec
+        editedShape?.shouldRerender = true
+    }
+
+    private fun onColorChange() {
+        if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
+            return
+        }
+
+        try {
+            redInput!!.text.toInt()
+            greenInput!!.text.toInt()
+            blueInput!!.text.toInt()
+        } catch (e: NumberFormatException) {
+            return
+        }
+
+        val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
+        editedShape?.color = color
+        editedShape?.shouldRerender = true
+    }
+
+    private fun onRadiusChange() {
+        if (radiusInput!!.text.isEmpty()) return
+        try {
+            radiusInput!!.text.toInt()
+        } catch (e: NumberFormatException) {
+            return
+        }
+
+        (editedShape as RadialShape).radius = radiusInput!!.text.toInt()
+        editedShape.shouldRerender = true
     }
 
     private fun hideDimensionInputs() {

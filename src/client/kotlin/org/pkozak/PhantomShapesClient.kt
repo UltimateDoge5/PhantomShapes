@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.VertexBuffer
 import net.minecraft.client.option.KeyBinding
-import net.minecraft.client.render.BufferBuilder
 import net.minecraft.client.render.GameRenderer
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormat.DrawMode
@@ -23,6 +22,7 @@ import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import org.pkozak.screen.ShapesScreen
+import org.pkozak.shape.Shape
 import org.pkozak.util.RenderUtil
 import org.pkozak.util.SavedDataManager
 import org.slf4j.Logger
@@ -115,7 +115,6 @@ object PhantomShapesClient : ClientModInitializer {
 
         matrixStack.push()
         RenderSystem.enableBlend()
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
         RenderSystem.enableDepthTest()
         RenderSystem.depthFunc(GL11.GL_LEQUAL)
         RenderSystem.enableCull()

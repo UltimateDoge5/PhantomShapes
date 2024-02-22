@@ -4,8 +4,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
-import org.pkozak.Shape
-import org.pkozak.ShapeType
 import org.pkozak.util.MathUtil.Companion.lengthSq
 import java.awt.Color
 import kotlin.math.ceil
@@ -14,9 +12,9 @@ class Cylinder(
     override val name: String,
     override var color: Color,
     override var pos: Vec3d,
-    val radius: Int,
-    val height: Int
-) : Shape() {
+    override var radius: Int,
+    var height: Int
+) : RadialShape() {
     override val type = ShapeType.CYLINDER
 
     override fun generateBlocks(): MutableSet<Vec3d> {

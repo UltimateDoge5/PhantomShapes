@@ -4,22 +4,14 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
-import org.pkozak.Shape
-import org.pkozak.ShapeType
 import org.pkozak.util.MathUtil.Companion.lengthSq
 import java.awt.Color
 import kotlin.math.ceil
 
 class Sphere(
-    override val name: String,
-    override var color: Color,
-    override var pos: Vec3d,
-    var radius: Int
-) :
-    Shape() {
+    override val name: String, override var color: Color, override var pos: Vec3d, override var radius: Int
+) : RadialShape() {
     override val type = ShapeType.SPHERE
-
-
     private val positions = mutableSetOf<Vec3d>()
 
     override fun generateBlocks(): MutableSet<Vec3d> {
@@ -52,9 +44,7 @@ class Sphere(
 
 
                     if (lengthSq(nextXn, yn, zn) <= 1 && lengthSq(xn, nextYn, zn) <= 1 && lengthSq(
-                            xn,
-                            yn,
-                            nextZn
+                            xn, yn, nextZn
                         ) <= 1
                     ) {
                         continue

@@ -13,7 +13,7 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.math.ColorHelper
 import org.pkozak.PhantomShapesClient.INVISIBLE_ICON
 import org.pkozak.PhantomShapesClient.VISIBLE_ICON
-import org.pkozak.Shape
+import org.pkozak.shape.Shape
 
 class ShapeListEntry(
     private val widget: ShapeListWidget, internal val shape: Shape, private val client: MinecraftClient

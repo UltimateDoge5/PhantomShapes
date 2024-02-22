@@ -4,8 +4,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
-import org.pkozak.Shape
-import org.pkozak.ShapeType
 import org.pkozak.util.MathUtil
 import java.awt.Color
 import kotlin.math.ceil
@@ -16,14 +14,13 @@ class Arch(
     override val name: String,
     override var color: Color,
     override var pos: Vec3d,
-    val radius: Int,
-    val width: Int
-) : Shape() {
+    override var radius: Int,
+    var width: Int
+) : RadialShape() {
     override val type = ShapeType.ARCH
     override fun generateBlocks(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
-        // Render the full tunnel (cylinder but lying down)
         val invRadius: Double = 1 / (radius + 0.5)
         val ceilRadius = ceil(radius + 0.5).toInt()
 
