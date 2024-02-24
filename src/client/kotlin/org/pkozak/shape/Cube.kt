@@ -24,27 +24,31 @@ class Cube(
                 }
             }
         }
-    return positions
-}
-
-override fun toJsonObject(): JsonObject {
-    val json = buildJsonObject {
-        put("name", name)
-        put("type", type.toString())
-        put("color", color.rgb)
-        put("pos", buildJsonObject {
-            put("x", pos.x)
-            put("y", pos.y)
-            put("z", pos.z)
-        })
-        put("dimensions", buildJsonObject {
-            put("x", dimensions.x)
-            put("y", dimensions.y)
-            put("z", dimensions.z)
-        })
-        put("enabled", enabled)
+        return positions
     }
 
-    return json
-}
+    override fun isInRange(x: Int, z: Int): Boolean {
+        return x >= pos.x && x <= pos.x + dimensions.x && z >= pos.z && z <= pos.z + dimensions.z
+    }
+
+    override fun toJsonObject(): JsonObject {
+        val json = buildJsonObject {
+            put("name", name)
+            put("type", type.toString())
+            put("color", color.rgb)
+            put("pos", buildJsonObject {
+                put("x", pos.x)
+                put("y", pos.y)
+                put("z", pos.z)
+            })
+            put("dimensions", buildJsonObject {
+                put("x", dimensions.x)
+                put("y", dimensions.y)
+                put("z", dimensions.z)
+            })
+            put("enabled", enabled)
+        }
+
+        return json
+    }
 }

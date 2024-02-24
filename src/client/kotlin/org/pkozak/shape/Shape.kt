@@ -3,7 +3,7 @@ package org.pkozak.shape
 import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
-import org.pkozak.PhantomShapesClient
+import org.pkozak.ui.Icons
 import org.pkozak.util.SavedDataManager.Companion.toSafeDouble
 import java.awt.Color
 
@@ -18,17 +18,19 @@ abstract class Shape {
 
     abstract fun generateBlocks(): MutableSet<Vec3d>
 
+    abstract fun isInRange(x: Int, z: Int): Boolean
+
     fun toggleVisibility() {
         enabled = !enabled
         shouldRerender = true
     }
 
     fun getIcon() = when (type) {
-        ShapeType.CUBE -> PhantomShapesClient.CUBE_ICON
-        ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
-        ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
-        ShapeType.TUNNEL -> PhantomShapesClient.TUNNEL_ICON
-        ShapeType.ARCH -> PhantomShapesClient.ARCH_BRIDGE_ICON
+        ShapeType.CUBE -> Icons.CUBE_ICON
+        ShapeType.SPHERE -> Icons.SPHERE_ICON
+        ShapeType.CYLINDER -> Icons.CYLINDER_ICON
+        ShapeType.TUNNEL -> Icons.TUNNEL_ICON
+        ShapeType.ARCH -> Icons.ARCH_ICON
     }
 
     abstract fun toJsonObject(): JsonObject
@@ -46,6 +48,7 @@ abstract class Shape {
                 (json["pos"] as JsonObject)["y"].toString().toDouble(),
                 (json["pos"] as JsonObject)["z"].toString().toDouble()
             )
+            val enabled = json["enabled"].toString().toBoolean()
 
             return when (type) {
                 ShapeType.CUBE -> {
@@ -54,7 +57,6 @@ abstract class Shape {
                         (json["dimensions"] as JsonObject)["y"].toString().toInt(),
                         (json["dimensions"] as JsonObject)["z"].toString().toInt()
                     )
-                    val enabled = json["enabled"].toString().toBoolean()
 
                     Cube(name, color, pos, dimensions).apply {
                         this.enabled = enabled
@@ -63,7 +65,6 @@ abstract class Shape {
 
                 ShapeType.SPHERE -> {
                     val radius = json["radius"].toString().toInt()
-                    val enabled = json["enabled"].toString().toBoolean()
 
                     Sphere(name, color, pos, radius).apply {
                         this.enabled = enabled
@@ -73,7 +74,6 @@ abstract class Shape {
                 ShapeType.CYLINDER -> {
                     val radius = json["radius"].toString().toInt()
                     val height = json["height"].toString().toInt()
-                    val enabled = json["enabled"].toString().toBoolean()
 
                     Cylinder(name, color, pos, radius, height).apply {
                         this.enabled = enabled
@@ -87,6 +87,7 @@ abstract class Shape {
 
                     Tunnel(name, color, pos, radius, height).apply {
                         this.rotation = rotation
+                        this.enabled = enabled
                     }
                 }
 
@@ -97,21 +98,22 @@ abstract class Shape {
 
                     Arch(name, color, pos, radius, width).apply {
                         this.rotation = rotation
+                        this.enabled = enabled
                     }
                 }
             }
         }
 
         fun getIcon(type: ShapeType) = when (type) {
-            ShapeType.CUBE -> PhantomShapesClient.CUBE_ICON
-            ShapeType.SPHERE -> PhantomShapesClient.SPHERE_ICON
-            ShapeType.CYLINDER -> PhantomShapesClient.CYLINDER_ICON
-            ShapeType.TUNNEL -> PhantomShapesClient.TUNNEL_ICON
-            ShapeType.ARCH -> PhantomShapesClient.ARCH_BRIDGE_ICON
+            ShapeType.CUBE -> Icons.CUBE_ICON
+            ShapeType.SPHERE -> Icons.SPHERE_ICON
+            ShapeType.CYLINDER -> Icons.CYLINDER_ICON
+            ShapeType.TUNNEL -> Icons.TUNNEL_ICON
+            ShapeType.ARCH -> Icons.ARCH_ICON
         }
     }
 }
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH;
+    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH
 }

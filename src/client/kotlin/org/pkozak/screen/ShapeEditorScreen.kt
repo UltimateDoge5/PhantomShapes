@@ -9,10 +9,10 @@ import net.minecraft.util.Colors
 import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
-import org.pkozak.PhantomShapesClient.PIN_ICON
 import org.pkozak.shape.Shape
 import org.pkozak.shape.ShapeType
 import org.pkozak.shape.*
+import org.pkozak.ui.Icons
 import org.pkozak.ui.RotationSlider
 import java.awt.Color
 
@@ -147,7 +147,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             }
         }
 
-        // If shape is not null, it means we are editing an existing shape
+        // If the shape is not null, it means we are editing an existing shape
         if (editedShape != null) {
             shapeNameInput!!.text = editedShape.name
             xCoordsInput!!.text = editedShape.pos.x.toInt().toString()
@@ -163,9 +163,9 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             shapeTypeInput!!.active = false
 
             // Setup listeners for live position updates
-            xCoordsInput!!.setChangedListener { onCoordinatesChange() }
-            yCoordsInput!!.setChangedListener { onCoordinatesChange() }
-            zCoordsInput!!.setChangedListener { onCoordinatesChange() }
+            xCoordsInput!!.setChangedListener { onCoordinateChange() }
+            yCoordsInput!!.setChangedListener { onCoordinateChange() }
+            zCoordsInput!!.setChangedListener { onCoordinateChange() }
 
             // Color listeners
             redInput!!.setChangedListener { onColorChange() }
@@ -294,7 +294,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             true
         )
 
-        context.drawGuiTexture(PIN_ICON, centerBtn!!.x + 2, centerBtn!!.y + 2, 16, 16)
+        context.drawGuiTexture(Icons.PIN_ICON, centerBtn!!.x + 2, centerBtn!!.y + 2, 16, 16)
 
         context.drawText(
             textRenderer,
@@ -603,7 +603,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
     }
 
-    private fun onCoordinatesChange() {
+    private fun onCoordinateChange() {
         if (xCoordsInput!!.text.isEmpty() || yCoordsInput!!.text.isEmpty() || zCoordsInput!!.text.isEmpty()) {
             return
         }

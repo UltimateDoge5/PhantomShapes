@@ -11,9 +11,8 @@ import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.ColorHelper
-import org.pkozak.PhantomShapesClient.INVISIBLE_ICON
-import org.pkozak.PhantomShapesClient.VISIBLE_ICON
 import org.pkozak.shape.Shape
+import org.pkozak.ui.Icons
 
 class ShapeListEntry(
     private val widget: ShapeListWidget, internal val shape: Shape, private val client: MinecraftClient
@@ -101,7 +100,7 @@ class ShapeListEntry(
     }
 
     private fun getToggleTexture(): Identifier {
-        return if (shape.enabled) VISIBLE_ICON else INVISIBLE_ICON
+        return if (shape.enabled) Icons.VISIBLE_ICON else Icons.INVISIBLE_ICON
     }
 
     private fun delete() {
