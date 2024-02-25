@@ -13,8 +13,8 @@ import net.minecraft.util.math.Vec3i
 import org.pkozak.shape.Shape
 import org.pkozak.shape.ShapeType
 import org.pkozak.shape.*
+import org.pkozak.ui.IconButton
 import org.pkozak.ui.Icons
-import org.pkozak.ui.RotationSlider
 import java.awt.Color
 
 class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
@@ -36,11 +36,12 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     private var radiusInput: TextFieldWidget? = null
 
     private var confirmBtn: ButtonWidget? = null
-    private var centerBtn: ButtonWidget? = null
-    private var rotationInput: RotationSlider? = null
+    private var centerBtn: IconButton? = null
+    private var rotationButon: IconButton? = null
 
     private var errorText = ""
     private var shapeType: ShapeType = ShapeType.CUBE
+    private var editorRotation  = 0.0
 
     override fun init() {
         super.init()
@@ -78,19 +79,34 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         blueInput!!.setPlaceholder(Text.literal("Blue"))
         blueInput!!.text = "255"
 
+
         confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) {
             if (editedShape == null) createShape()
             close()
         }
             .dimensions(width / 2 - 100, 180, 200, 20).build()
 
-        centerBtn = ButtonWidget.builder(Text.empty()) {
+        rotationButon = IconButton.builder {
+            editorRotation += 90
+            editorRotation %= 360
+            if (editedShape != null) {
+                editedShape.rotation = editorRotation
+                editedShape.shouldRerender = true
+            }
+        }
+            .dimensions(width / 3 + 108 + 20 + 108, 100, 20, 20)
+            .tooltip(Tooltip.of(Text.literal("Rotate the shape around the Y axis")))
+            .icon(Icons.ROTATE)
+            .build()
+
+        centerBtn = IconButton.builder {
             xCoordsInput!!.text = client?.player?.x?.toInt().toString()
             yCoordsInput!!.text = client?.player?.y?.toInt().toString()
             zCoordsInput!!.text = client?.player?.z?.toInt().toString()
         }
             .dimensions(width / 3 - 25 + 108, 100, 20, 20)
             .tooltip(Tooltip.of(Text.literal("Center the shape on player position")))
+            .icon(Icons.PIN_ICON)
             .build()
 
         shapeTypeInput = ButtonWidget.builder(Text.literal("Cube")) {
@@ -147,13 +163,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Radius"))
         radiusInput!!.setPlaceholder(Text.literal("Radius"))
         radiusInput!!.text = "5"
-
-        rotationInput = RotationSlider(width / 3 + 108 + 20 + 108, 100, 75, 20) { value: Double ->
-            if (editedShape != null) {
-                editedShape.rotation = value
-                editedShape.shouldRerender = true
-            }
-        }
 
         // If the shape is not null, it means we are editing an existing shape
         if (editedShape != null) {
@@ -216,7 +225,8 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 ShapeType.TUNNEL -> {
                     radiusInput!!.text = (editedShape as Tunnel).radius.toString()
                     heightInput!!.text = editedShape.height.toString()
-                    rotationInput!!.setAngle(editedShape.rotation)
+//                    rotationInput!!.setAngle(editedShape.rotation)
+                    editorRotation = editedShape.rotation
                     radiusInput!!.setChangedListener {
                         onRadiusChange()
                     }
@@ -236,7 +246,8 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 ShapeType.ARCH -> {
                     radiusInput!!.text = (editedShape as Arch).radius.toString()
                     heightInput!!.text = editedShape.width.toString()
-                    rotationInput!!.setAngle(editedShape.rotation)
+//                    rotationInput!!.setAngle(editedShape.rotation)
+                    editorRotation = editedShape.rotation
                     radiusInput!!.setChangedListener {
                         onRadiusChange()
                     }
@@ -321,8 +332,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             true
         )
 
-        context.drawGuiTexture(Icons.PIN_ICON, centerBtn!!.x + 2, centerBtn!!.y + 2, 16, 16)
-
         context.drawText(
             textRenderer,
             "Color",
@@ -376,7 +385,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 )
             }
 
-            ShapeType.CYLINDER -> {
+            ShapeType.CYLINDER, ShapeType.HEXAGON -> {
                 context.drawText(
                     textRenderer,
                     "Radius",
@@ -429,26 +438,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 context.drawText(
                     textRenderer,
                     "Width",
-                    heightInput!!.x,
-                    heightInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-            }
-
-            ShapeType.HEXAGON -> {
-                context.drawText(
-                    textRenderer,
-                    "Radius",
-                    radiusInput!!.x,
-                    radiusInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-
-                context.drawText(
-                    textRenderer,
-                    "Height",
                     heightInput!!.x,
                     heightInput!!.y - 10,
                     0xFFFFFF,
@@ -517,7 +506,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 val radius = radiusInput!!.text.toInt()
                 val height = heightInput!!.text.toInt()
                 Tunnel(name, color, pos, radius, height).apply {
-                    rotation = rotationInput!!.getAngle()
+                    this.rotation
                 }
             }
 
@@ -525,7 +514,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 val radius = radiusInput!!.text.toInt()
                 val width = heightInput!!.text.toInt()
                 Arch(name, color, pos, radius, width).apply {
-                    rotation = rotationInput!!.getAngle()
+                    rotation = editorRotation
                 }
             }
 
@@ -564,7 +553,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             errorText = "Color cannot be empty"
             return false
         }
-
+        
         if (shapeType == ShapeType.CUBE) {
             if (widthInput!!.text.isEmpty() || heightInput!!.text.isEmpty() || depthInput!!.text.isEmpty()) {
                 errorText = "Dimensions cannot be empty"
@@ -599,7 +588,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             }
         }
 
-        if (shapeType == ShapeType.CYLINDER) {
+        if (shapeType == ShapeType.CYLINDER || shapeType == ShapeType.HEXAGON) {
             if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
                 errorText = "Radius and height cannot be empty"
                 return false
@@ -616,6 +605,40 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             }
         }
 
+        if(shapeType == ShapeType.TUNNEL){
+            if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
+                errorText = "Radius and length cannot be empty"
+                return false
+            }
+
+            try {
+                if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
+                    errorText = "Radius and length must be greater than 0"
+                    return false
+                }
+            } catch (e: NumberFormatException) {
+                errorText = "Radius and length must be numbers"
+                return false
+            }
+        }
+
+        if (shapeType == ShapeType.ARCH){
+            if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
+                errorText = "Radius and width cannot be empty"
+                return false
+            }
+
+            try {
+                if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
+                    errorText = "Radius and width must be greater than 0"
+                    return false
+                }
+            } catch (e: NumberFormatException) {
+                errorText = "Radius and width must be numbers"
+                return false
+            }
+        }
+
         errorText = ""
         return true
     }
@@ -627,19 +650,19 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 addDrawableChild(depthInput)
                 addDrawableChild(heightInput)
                 remove(radiusInput)
-                remove(rotationInput)
+                remove(rotationButon)
             }
 
             ShapeType.SPHERE -> {
                 hideDimensionInputs()
                 addDrawableChild(radiusInput)
-                remove(rotationInput)
+                remove(rotationButon)
             }
 
             ShapeType.CYLINDER -> {
                 hideDimensionInputs()
                 remove(radiusInput)
-                remove(rotationInput)
+                remove(rotationButon)
                 addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
             }
@@ -648,10 +671,10 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 hideDimensionInputs()
                 remove(radiusInput)
                 remove(heightInput)
-                remove(rotationInput)
+                remove(rotationButon)
                 addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
-                addDrawableChild(rotationInput)
+                addDrawableChild(rotationButon)
             }
         }
     }

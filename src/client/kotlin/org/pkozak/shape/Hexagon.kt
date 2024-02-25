@@ -26,9 +26,9 @@ class Hexagon(
         val correctedRadius = if (radius % 2 == 0) radius.toFloat() + 0.1f else radius.toFloat()
 
         for (i in 0 until 6) {
-            val angle = i * Math.PI / 3
-            val x = (correctedRadius * cos(angle)).toInt()
-            val z = (correctedRadius * sin(angle)).toInt()
+            val angle = i * Math.PI / 3 + Math.toRadians(rotation)
+            val x = (correctedRadius * cos(angle) ).toInt()
+            val z = (correctedRadius * sin(angle) ).toInt()
             hexagonVertices.add(Vec3i(x, pos.y.toInt(), z))
         }
 

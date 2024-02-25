@@ -13,6 +13,7 @@ class Icons {
         val ARCH_ICON = Identifier("phantomshapes", "arch")
         val HEXAGON_ICON = Identifier("phantomshapes", "hexagon")
         val PIN_ICON = Identifier("phantomshapes", "pin")
+        val ROTATE = Identifier("phantomshapes", "rotate")
         val DELETE_ICON = Identifier("phantomshapes", "delete")
     }
 }
