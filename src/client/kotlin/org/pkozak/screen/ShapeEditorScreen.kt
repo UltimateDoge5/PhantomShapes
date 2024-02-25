@@ -2,6 +2,7 @@ package org.pkozak.screen
 
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.Text
@@ -88,7 +89,9 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             yCoordsInput!!.text = client?.player?.y?.toInt().toString()
             zCoordsInput!!.text = client?.player?.z?.toInt().toString()
         }
-            .dimensions(width / 3 - 25 + 108, 100, 20, 20).build()
+            .dimensions(width / 3 - 25 + 108, 100, 20, 20)
+            .tooltip(Tooltip.of(Text.literal("Center the shape on player position")))
+            .build()
 
         shapeTypeInput = ButtonWidget.builder(Text.literal("Cube")) {
             when (shapeTypeInput!!.message.asTruncatedString(8).lowercase()) {
@@ -113,6 +116,11 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 }
 
                 "arch" -> {
+                    shapeTypeInput!!.message = Text.literal("Hexagon")
+                    shapeType = ShapeType.HEXAGON
+                }
+
+                "hexagon" -> {
                     shapeTypeInput!!.message = Text.literal("Cube")
                     shapeType = ShapeType.CUBE
                 }
@@ -241,6 +249,25 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                         }
 
                         editedShape.width = heightInput!!.text.toInt()
+                        editedShape.shouldRerender = true
+                    }
+                }
+
+                ShapeType.HEXAGON -> {
+                    radiusInput!!.text = (editedShape as Hexagon).radius.toString()
+                    heightInput!!.text = editedShape.height.toString()
+                    radiusInput!!.setChangedListener {
+                        onRadiusChange()
+                    }
+                    heightInput!!.setChangedListener {
+                        if (heightInput!!.text.isEmpty()) return@setChangedListener
+                        try {
+                            heightInput!!.text.toInt()
+                        } catch (e: NumberFormatException) {
+                            return@setChangedListener
+                        }
+
+                        editedShape.height = heightInput!!.text.toInt()
                         editedShape.shouldRerender = true
                     }
                 }
@@ -408,6 +435,26 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                     true
                 )
             }
+
+            ShapeType.HEXAGON -> {
+                context.drawText(
+                    textRenderer,
+                    "Radius",
+                    radiusInput!!.x,
+                    radiusInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+
+                context.drawText(
+                    textRenderer,
+                    "Height",
+                    heightInput!!.x,
+                    heightInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+            }
         }
 
         validateShape()
@@ -480,6 +527,12 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 Arch(name, color, pos, radius, width).apply {
                     rotation = rotationInput!!.getAngle()
                 }
+            }
+
+            ShapeType.HEXAGON -> {
+                val radius = radiusInput!!.text.toInt()
+                val height = heightInput!!.text.toInt()
+                Hexagon(name, color, pos, radius, height)
             }
         }
 
@@ -591,7 +644,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 addDrawableChild(heightInput)
             }
 
-            ShapeType.TUNNEL, ShapeType.ARCH -> {
+            ShapeType.TUNNEL, ShapeType.ARCH, ShapeType.HEXAGON -> {
                 hideDimensionInputs()
                 remove(radiusInput)
                 remove(heightInput)

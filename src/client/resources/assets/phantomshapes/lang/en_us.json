@@ -2,6 +2,7 @@
   "category.phantomshapes.controls": "Phantom Shapes",
   "key.phantomshapes.menu": "Shape menu",
   "key.phantomshapes.toggle_render": "Toggle shape rendering",
+  "key.phantomshapes.rerender_shapes": "Rerender all shapes",
   "options.phantomshapes.enable_render": "Shape rendering",
   "options.phantomshapes.enable_render.tooltip": "Whether to enable rendering of Phantom shapes",
   "options.phantomshapes.draw_on_blocks": "Draw on blocks",

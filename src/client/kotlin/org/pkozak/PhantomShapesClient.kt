@@ -56,6 +56,15 @@ object PhantomShapesClient : ClientModInitializer {
         )
     )
 
+    private var rerenderShapesKeyBinding = KeyBindingHelper.registerKeyBinding(
+        KeyBinding(
+            "key.phantomshapes.rerender_shapes",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_UNKNOWN,
+            "category.phantomshapes.controls"
+        )
+    )
+
     override fun onInitializeClient() {
         WorldRenderEvents.LAST.register {
             val matrixStack = it.matrixStack()
@@ -111,16 +120,19 @@ object PhantomShapesClient : ClientModInitializer {
             }
 
             while (toggleRenderKeyBinding.wasPressed()) {
-//                options.renderShapes.value = !options.renderShapes.value
-                for (shape in shapes) {
-//                    shape.enabled = !shape.enabled
-                    shape.shouldRerender = true
-                }
+                options.renderShapes.value = !options.renderShapes.value
                 client.player?.sendMessage(
                     Text.literal(
                         if (options.renderShapes.value) "Shapes are now visible"
                         else "Shapes are now hidden"
                     ), true
+                )
+            }
+
+            while (rerenderShapesKeyBinding.wasPressed()) {
+                rerenderAllShapes()
+                client.player?.sendMessage(
+                    Text.literal("Rerendered all shapes"), true
                 )
             }
         })
@@ -132,15 +144,14 @@ object PhantomShapesClient : ClientModInitializer {
         matrixStack.push()
         RenderSystem.enableBlend()
         RenderSystem.enableDepthTest()
-//        RenderSystem.depthFunc(GL11.GL_LEQUAL)
         RenderSystem.enableCull()
-//        RenderSystem.depthMask(false)
+        RenderSystem.depthMask(false)
         RenderSystem.setShader(GameRenderer::getPositionColorProgram)
 
         renderShapeBlocks(matrixStack, projectionMatrix)
 
         RenderSystem.disableBlend()
-//        RenderSystem.depthMask(true)
+        RenderSystem.depthMask(true)
         matrixStack.pop()
     }
 

@@ -31,6 +31,7 @@ abstract class Shape {
         ShapeType.CYLINDER -> Icons.CYLINDER_ICON
         ShapeType.TUNNEL -> Icons.TUNNEL_ICON
         ShapeType.ARCH -> Icons.ARCH_ICON
+        ShapeType.HEXAGON -> Icons.HEXAGON_ICON
     }
 
     abstract fun toJsonObject(): JsonObject
@@ -101,6 +102,15 @@ abstract class Shape {
                         this.enabled = enabled
                     }
                 }
+
+                ShapeType.HEXAGON -> {
+                    val radius = json["radius"].toString().toInt()
+                    val height = json["height"].toString().toInt()
+
+                    Hexagon(name, color, pos, radius, height).apply {
+                        this.enabled = enabled
+                    }
+                }
             }
         }
 
@@ -110,10 +120,11 @@ abstract class Shape {
             ShapeType.CYLINDER -> Icons.CYLINDER_ICON
             ShapeType.TUNNEL -> Icons.TUNNEL_ICON
             ShapeType.ARCH -> Icons.ARCH_ICON
+            ShapeType.HEXAGON -> Icons.HEXAGON_ICON
         }
     }
 }
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH
+    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH, HEXAGON
 }
