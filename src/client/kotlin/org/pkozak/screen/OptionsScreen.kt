@@ -19,7 +19,7 @@ class OptionsScreen(private val parent: Screen, private var options: Options) :
 
         list.addSingleOptionEntry(options.renderShapes)
         list.addSingleOptionEntry(options.drawOnBlocks)
-        list.addSingleOptionEntry(options.drawOnlyEdges)
+        list.addSingleOptionEntry(options.drawMode)
 
         addDrawableChild(list)
         addDrawableChild(

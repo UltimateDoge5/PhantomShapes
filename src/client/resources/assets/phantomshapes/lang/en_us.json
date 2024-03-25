@@ -7,6 +7,9 @@
   "options.phantomshapes.enable_render.tooltip": "Whether to enable rendering of Phantom shapes",
   "options.phantomshapes.draw_on_blocks": "Draw on blocks",
   "options.phantomshapes.draw_on_blocks.tooltip": "Draw phantom shapes on blocks other than air",
-  "options.phantomshapes.draw_only_edges": "Draw only edges",
-  "options.phantomshapes.draw_only_edges.tooltip": "Draw only the edges of blocks instead of the full block with sides"
+  "options.phantomshapes.draw_mode": "Draw mode",
+  "options.phantomshapes.draw_mode.tooltip": "How to render the shape blocks, either as a wireframe or as a solid block",
+  "options.phantomshapes.draw_mode.faces": "Faces",
+  "options.phantomshapes.draw_mode.edges": "Edges",
+  "options.phantomshapes.draw_mode.both": "Both"
 }

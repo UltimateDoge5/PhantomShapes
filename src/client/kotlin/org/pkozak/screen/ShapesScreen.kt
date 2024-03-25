@@ -21,9 +21,10 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 26, shapes)
         shapeListWidget!!.x = 0
 
-        addShapeBtn = ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(ShapeEditorScreen(this, null)) }
-            .dimensions(width / 2 - 205, height - 40, 200, 20)
-            .tooltip(Tooltip.of(Text.literal("Create a new phantom shape"))).build()
+        addShapeBtn =
+            ButtonWidget.builder(Text.literal("New shape")) { client?.setScreen(ShapeEditorScreen(this, null)) }
+                .dimensions(width / 2 - 205, height - 40, 200, 20)
+                .tooltip(Tooltip.of(Text.literal("Create a new phantom shape"))).build()
         closeBtn = ButtonWidget.builder(ScreenTexts.DONE) { close() }
             .dimensions(width / 2 + 5, height - 40, 200, 20).build()
 
@@ -45,6 +46,16 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         context.drawText(textRenderer, Text.literal("Actions"), 360, y, Color.WHITE.rgb, false)
 
         shapeListWidget!!.render(context, mouseX, mouseY, delta)
+
+        if (PhantomShapesClient.overwriteProtection) {
+            context.drawCenteredTextWithShadow(
+                textRenderer,
+                Text.of("There were problems while loading shapes file. Any changes won't be saved!"),
+                width / 2,
+                height - 60,
+                0xff5555
+            )
+        }
     }
 
     override fun close() {

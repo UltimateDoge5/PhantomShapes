@@ -17,6 +17,7 @@ Get the newest version on [Modrinth](https://modrinth.com/mod/phantomshapes)
 - Cylinders
 - Tunnels
 - Arches
+- Hexagons
 
 And even more are coming!
 
@@ -36,8 +37,8 @@ I have not tested this mod with other optimization mods. If you find any incompa
 
 ## How to use:
 
-Upon loading into the game simply press `P` and the shape manager menu will show up. From that point you should be able
-to use the interface to do anything.
+Upon loading into the game simply press `P` and the shape manager menu will show up.
+From that point, you should be able to use the interface to do anything.
 
 Mod settings can be accessed using the [Mod Menu](https://modrinth.com/mod/modmenu)
 

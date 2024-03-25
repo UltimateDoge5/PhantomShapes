@@ -67,13 +67,11 @@ object PhantomShapesClient : ClientModInitializer {
 
     override fun onInitializeClient() {
         WorldRenderEvents.LAST.register {
-            val matrixStack = it.matrixStack()
-            val projectionMatrix = it.projectionMatrix()
-            onWorldRendered(matrixStack, projectionMatrix)
+            onWorldRendered(it.matrixStack(), it.projectionMatrix())
         }
 
         ClientPlayerBlockBreakEvents.AFTER.register { _, _, blockPos, _ ->
-            if(!options.renderShapes.value || options.drawOnBlocks.value) return@register
+            if (!options.renderShapes.value || options.drawOnBlocks.value) return@register
             for (shape in shapes) {
                 if (shape.isInRange(blockPos.x, blockPos.z)) {
                     shape.shouldRerender = true
@@ -82,7 +80,7 @@ object PhantomShapesClient : ClientModInitializer {
         }
 
         UseBlockCallback.EVENT.register { _, _, _, hitResult ->
-            if(!options.renderShapes.value || options.drawOnBlocks.value) return@register ActionResult.PASS
+            if (!options.renderShapes.value || options.drawOnBlocks.value) return@register ActionResult.PASS
             val blockPos = hitResult.blockPos
             for (shape in shapes) {
                 if (shape.isInRange(blockPos.x, blockPos.z)) {
@@ -181,12 +179,12 @@ object PhantomShapesClient : ClientModInitializer {
                     -(camera.pos.z).toFloat()
                 )
 
-            // Shape data changed, rerender the VBO
+            // Shape data changed, rerender the VBOs
             if (shape.shouldRerender) {
                 val buffer = Tessellator.getInstance().buffer
-                buffer.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
 
                 val blocks = shape.generateBlocks()
+                shape.blockAmount = blocks.size
 
                 val red = shape.color.red.toFloat() / 255
                 val green = shape.color.green.toFloat() / 255
@@ -194,37 +192,41 @@ object PhantomShapesClient : ClientModInitializer {
                 val alpha = 0.4f
 
                 // Build outlines for each block
-                for (block in blocks) {
-                    if (!options.drawOnBlocks.value) {
-                        val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
-                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                if (options.drawMode.value != Options.DrawMode.FACES) {
+                    buffer.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
+                    for (block in blocks) {
+                        if (!options.drawOnBlocks.value) {
+                            val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
+                            if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                        }
+
+                        val start = block.add(client.gameRenderer.camera.pos)
+                        val end = start.add(1.0, 1.0, 1.0)
+
+                        val x1 = start.x.toFloat()
+                        val y1 = start.y.toFloat()
+                        val z1 = start.z.toFloat()
+                        val x2 = end.x.toFloat()
+                        val y2 = end.y.toFloat()
+                        val z2 = end.z.toFloat()
+
+                        RenderUtil.buildOutline(buffer, rotatedMatrix, red, green, blue, 1f, x1, y1, z1, x2, y2, z2)
                     }
 
-                    val start = block.add(client.gameRenderer.camera.pos)
-                    val end = start.add(1.0, 1.0, 1.0)
+                    val builtBuffer = buffer.end()
 
-                    val x1 = start.x.toFloat()
-                    val y1 = start.y.toFloat()
-                    val z1 = start.z.toFloat()
-                    val x2 = end.x.toFloat()
-                    val y2 = end.y.toFloat()
-                    val z2 = end.z.toFloat()
-
-                    RenderUtil.buildOutline(buffer, rotatedMatrix, red, green, blue, 1f, x1, y1, z1, x2, y2, z2)
+                    // Create outline VBO if it doesn't exist, otherwise update it
+                    if (outlineVboMap[shape.name] == null) {
+                        outlineVboMap[shape.name] = RenderUtil.createVBO(builtBuffer)
+                    } else {
+                        outlineVboMap[shape.name]!!.bind()
+                        outlineVboMap[shape.name]!!.upload(builtBuffer)
+                        VertexBuffer.unbind()
+                    }
                 }
 
-                val builtBuffer = buffer.end()
-
-                if (outlineVboMap[shape.name] == null) {
-                    outlineVboMap[shape.name] = RenderUtil.createVBO(builtBuffer)
-                } else {
-                    outlineVboMap[shape.name]!!.bind()
-                    outlineVboMap[shape.name]!!.upload(builtBuffer)
-                    VertexBuffer.unbind()
-                }
-
-                // Build quad for each block
-                if (!options.drawOnlyEdges.value) {
+                // Now we can build quads for each block
+                if (options.drawMode.value != Options.DrawMode.EDGES) {
                     buffer.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR)
                     for (block in blocks) {
                         if (!options.drawOnBlocks.value) {
@@ -260,8 +262,8 @@ object PhantomShapesClient : ClientModInitializer {
                 shape.shouldRerender = false
             }
 
-            // Render the VBO
-            if (!options.drawOnlyEdges.value && quadVboMap[shape.name] != null) {
+            // Render quads using the VBO
+            if (options.drawMode.value != Options.DrawMode.EDGES && quadVboMap[shape.name] != null) {
                 val vbo = quadVboMap[shape.name]!!
                 vbo.bind()
                 vbo.draw(
@@ -272,15 +274,17 @@ object PhantomShapesClient : ClientModInitializer {
                 VertexBuffer.unbind()
             }
 
-            val outlineVbo =
-                outlineVboMap[shape.name] ?: throw RuntimeException("Outline VBO is null, this should not happen!")
-            outlineVbo.bind()
-            outlineVbo.draw(
-                posMatrix,
-                projectionMatrix,
-                RenderSystem.getShader()
-            )
-            VertexBuffer.unbind()
+            // Render outlines using the outline VBO
+            if(options.drawMode.value != Options.DrawMode.FACES && outlineVboMap[shape.name] != null) {
+                val outlineVbo = outlineVboMap[shape.name]!!
+                outlineVbo.bind()
+                outlineVbo.draw(
+                    posMatrix,
+                    projectionMatrix,
+                    RenderSystem.getShader()
+                )
+                VertexBuffer.unbind()
+            }
         }
     }
 

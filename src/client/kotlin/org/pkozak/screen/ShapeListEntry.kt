@@ -11,6 +11,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.ColorHelper
+import org.pkozak.PhantomShapesClient
 import org.pkozak.shape.Shape
 import org.pkozak.ui.Icons
 
@@ -22,8 +23,9 @@ class ShapeListEntry(
     private var toggleBtn: ButtonWidget? = null
 
     init {
-        editBtn = ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(ShapeEditorScreen(widget.parent, shape)) }
-            .dimensions(360, 0, 50, 32).build()
+        editBtn =
+            ButtonWidget.builder(Text.literal("Edit")) { client.setScreen(ShapeEditorScreen(widget.parent, shape)) }
+                .dimensions(360, 0, 50, 32).build()
 
         deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
             .dimensions(425, 0, 50, 32).build()
@@ -53,7 +55,6 @@ class ShapeListEntry(
         } else {
             context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(64, 0, 0, 0))
         }
-
 
         // First render the shape name
         context.drawText(

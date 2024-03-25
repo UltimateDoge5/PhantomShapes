@@ -135,5 +135,14 @@ class SavedDataManager {
                 fallback
             }
         }
+
+        fun toSafeInt(obj: JsonObject, key: String, fallback: Int): Int {
+            return try {
+                obj[key].toString().toInt()
+            } catch (e: Exception) {
+                logger.warn("Failed to parse int from key: $key. Using fallback value")
+                fallback
+            }
+        }
     }
 }
