@@ -7,6 +7,7 @@ import kotlinx.serialization.json.jsonObject
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.WorldSavePath
+import org.pkozak.PhantomShapesClient
 import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.shape.Shape
 import java.io.*
@@ -18,6 +19,8 @@ class SavedDataManager {
             val client = MinecraftClient.getInstance()
             val shapes = mutableListOf<Shape>()
 
+            val fileName: String
+
             // Single player is a local server
             if (client.isInSingleplayer) {
                 val saveName = client.server?.getSavePath(WorldSavePath.ROOT)?.parent?.fileName
@@ -26,11 +29,7 @@ class SavedDataManager {
                     return shapes
                 }
 
-                val jsonString = readFromFile("$saveName.json")
-                if (jsonString != null) {
-                    val jsonArray = Json.decodeFromString(JsonArray.serializer(), jsonString)
-                    jsonArray.forEach { shapes.add(Shape.fromJsonObject(it.jsonObject)) }
-                }
+                fileName = saveName.toString()
             } else {
                 val serverAddress = client.currentServerEntry?.address
                 if (serverAddress == null) {
@@ -38,10 +37,19 @@ class SavedDataManager {
                     return shapes
                 }
 
-                val jsonString = readFromFile("$serverAddress.json")
-                if (jsonString != null) {
-                    val jsonArray = Json.decodeFromString(JsonArray.serializer(), jsonString)
-                    jsonArray.forEach { shapes.add(Shape.fromJsonObject(it.jsonObject)) }
+                fileName = serverAddress
+            }
+
+            val jsonString = readFromFile("$fileName.json")
+            if (jsonString != null) {
+                val jsonArray = Json.decodeFromString(JsonArray.serializer(), jsonString)
+                jsonArray.forEach {
+                    try {
+                        shapes.add(Shape.fromJsonObject(it.jsonObject))
+                    } catch (e: Exception) {
+                        logger.error("Shape ${jsonArray.indexOf(it)} out of ${jsonArray.size - 1} is of incorrect format, some data might be missing")
+                        PhantomShapesClient.overwriteProtection = true
+                    }
                 }
             }
 

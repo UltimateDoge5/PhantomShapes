@@ -43,7 +43,8 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         context.drawText(textRenderer, Text.literal("Type"), 150, y, Color.WHITE.rgb, false)
         context.drawText(textRenderer, Text.literal("Color"), 190, y, Color.WHITE.rgb, false)
         context.drawText(textRenderer, Text.literal("Position"), 230, y, Color.WHITE.rgb, false)
-        context.drawText(textRenderer, Text.literal("Actions"), 360, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Blocks"), 360, y, Color.WHITE.rgb, false)
+        context.drawText(textRenderer, Text.literal("Actions"), 408, y, Color.WHITE.rgb, false)
 
         shapeListWidget!!.render(context, mouseX, mouseY, delta)
 

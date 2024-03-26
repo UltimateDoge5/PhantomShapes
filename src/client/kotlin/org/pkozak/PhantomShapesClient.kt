@@ -70,6 +70,7 @@ object PhantomShapesClient : ClientModInitializer {
             onWorldRendered(it.matrixStack(), it.projectionMatrix())
         }
 
+        // Listen for block break events to update rendered shape blocks
         ClientPlayerBlockBreakEvents.AFTER.register { _, _, blockPos, _ ->
             if (!options.renderShapes.value || options.drawOnBlocks.value) return@register
             for (shape in shapes) {
@@ -79,6 +80,7 @@ object PhantomShapesClient : ClientModInitializer {
             }
         }
 
+        // Listen for block place events to update rendered shape blocks
         UseBlockCallback.EVENT.register { _, _, _, hitResult ->
             if (!options.renderShapes.value || options.drawOnBlocks.value) return@register ActionResult.PASS
             val blockPos = hitResult.blockPos

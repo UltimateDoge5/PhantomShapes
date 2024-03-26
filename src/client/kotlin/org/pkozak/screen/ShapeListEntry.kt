@@ -11,8 +11,8 @@ import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.ColorHelper
-import org.pkozak.PhantomShapesClient
 import org.pkozak.shape.Shape
+import org.pkozak.ui.IconButton
 import org.pkozak.ui.Icons
 
 class ShapeListEntry(
@@ -20,7 +20,7 @@ class ShapeListEntry(
 ) : ElementListWidget.Entry<ShapeListEntry>() {
     private var deleteBtn: ButtonWidget? = null
     private var editBtn: ButtonWidget? = null
-    private var toggleBtn: ButtonWidget? = null
+    private var toggleBtn: IconButton? = null
 
     init {
         editBtn =
@@ -30,8 +30,12 @@ class ShapeListEntry(
         deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
             .dimensions(425, 0, 50, 32).build()
 
-        toggleBtn = ButtonWidget.builder(Text.empty()) { shape.toggleVisibility() }
+        toggleBtn = IconButton.builder {
+            shape.toggleVisibility()
+            toggleBtn!!.icon = getToggleTexture()
+        }
             .dimensions(4, 0, 24, 20)
+            .icon(getToggleTexture())
             .tooltip(Tooltip.of(Text.of("Toggle visibility")))
             .build()
     }
@@ -80,6 +84,16 @@ class ShapeListEntry(
             false
         )
 
+        // Render block amount
+        context.drawText(
+            this.client.textRenderer,
+            Text.literal("${if (shape.blockAmount > -1) shape.blockAmount else "Unknown"}"),
+            x + 354,
+            l,
+            0xFFFFFF,
+            false
+        )
+
         // Render buttons
         toggleBtn!!.y = y + 2
         toggleBtn!!.x = x + 4
@@ -87,17 +101,14 @@ class ShapeListEntry(
         toggleBtn!!.render(context, mouseX, mouseY, tickDelta)
 
         editBtn!!.y = y + 2
-        editBtn!!.x = x + 354
+        editBtn!!.x = x + 408
         editBtn!!.height = entryHeight - 4
         editBtn!!.render(context, mouseX, mouseY, tickDelta)
 
         deleteBtn!!.y = y + 2
-        deleteBtn!!.x = x + 408
+        deleteBtn!!.x = x + 462
         deleteBtn!!.height = entryHeight - 4
         deleteBtn!!.render(context, mouseX, mouseY, tickDelta)
-
-        // Center the icon on the button
-        context.drawGuiTexture(getToggleTexture(), x + 8, y + 2, 16, 16)
     }
 
     private fun getToggleTexture(): Identifier {
