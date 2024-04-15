@@ -43,7 +43,7 @@ object PhantomShapesClient : ClientModInitializer {
 
     private var menuKeyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
-            "key.phantomshapes.menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_P, "category.phantomshapes.controls"
+            "key.phantomshapes.menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, "category.phantomshapes.controls"
         )
     )
 
@@ -72,7 +72,7 @@ object PhantomShapesClient : ClientModInitializer {
 
         // Listen for block break events to update rendered shape blocks
         ClientPlayerBlockBreakEvents.AFTER.register { _, _, blockPos, _ ->
-            if (!options.renderShapes.value || options.drawOnBlocks.value) return@register
+            if (!options.renderShapes || options.drawOnBlocks) return@register
             for (shape in shapes) {
                 if (shape.isInRange(blockPos.x, blockPos.z)) {
                     shape.shouldRerender = true
@@ -82,7 +82,7 @@ object PhantomShapesClient : ClientModInitializer {
 
         // Listen for block place events to update rendered shape blocks
         UseBlockCallback.EVENT.register { _, _, _, hitResult ->
-            if (!options.renderShapes.value || options.drawOnBlocks.value) return@register ActionResult.PASS
+            if (!options.renderShapes || options.drawOnBlocks) return@register ActionResult.PASS
             val blockPos = hitResult.blockPos
             for (shape in shapes) {
                 if (shape.isInRange(blockPos.x, blockPos.z)) {
@@ -120,10 +120,10 @@ object PhantomShapesClient : ClientModInitializer {
             }
 
             while (toggleRenderKeyBinding.wasPressed()) {
-                options.renderShapes.value = !options.renderShapes.value
+                options.renderShapes = !options.renderShapes
                 client.player?.sendMessage(
                     Text.literal(
-                        if (options.renderShapes.value) "Shapes are now visible"
+                        if (options.renderShapes) "Shapes are now visible"
                         else "Shapes are now hidden"
                     ), true
                 )
@@ -139,7 +139,7 @@ object PhantomShapesClient : ClientModInitializer {
     }
 
     private fun onWorldRendered(matrixStack: MatrixStack, projectionMatrix: Matrix4f) {
-        if (!options.renderShapes.value) return
+        if (!options.renderShapes) return
 
         matrixStack.push()
         RenderSystem.enableBlend()
@@ -194,10 +194,10 @@ object PhantomShapesClient : ClientModInitializer {
                 val alpha = 0.4f
 
                 // Build outlines for each block
-                if (options.drawMode.value != Options.DrawMode.FACES) {
+                if (options.drawMode != Options.DrawMode.FACES) {
                     buffer.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
                     for (block in blocks) {
-                        if (!options.drawOnBlocks.value) {
+                        if (!options.drawOnBlocks) {
                             val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
                             if (client.world?.getBlockState(blockPos)?.isAir == false) continue
                         }
@@ -228,10 +228,10 @@ object PhantomShapesClient : ClientModInitializer {
                 }
 
                 // Now we can build quads for each block
-                if (options.drawMode.value != Options.DrawMode.EDGES) {
+                if (options.drawMode != Options.DrawMode.EDGES) {
                     buffer.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR)
                     for (block in blocks) {
-                        if (!options.drawOnBlocks.value) {
+                        if (!options.drawOnBlocks) {
                             val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
                             if (client.world?.getBlockState(blockPos)?.isAir == false) continue
                         }
@@ -265,7 +265,7 @@ object PhantomShapesClient : ClientModInitializer {
             }
 
             // Render quads using the VBO
-            if (options.drawMode.value != Options.DrawMode.EDGES && quadVboMap[shape.name] != null) {
+            if (options.drawMode != Options.DrawMode.EDGES && quadVboMap[shape.name] != null) {
                 val vbo = quadVboMap[shape.name]!!
                 vbo.bind()
                 vbo.draw(
@@ -277,7 +277,7 @@ object PhantomShapesClient : ClientModInitializer {
             }
 
             // Render outlines using the outline VBO
-            if(options.drawMode.value != Options.DrawMode.FACES && outlineVboMap[shape.name] != null) {
+            if (options.drawMode != Options.DrawMode.FACES && outlineVboMap[shape.name] != null) {
                 val outlineVbo = outlineVboMap[shape.name]!!
                 outlineVbo.bind()
                 outlineVbo.draw(
@@ -290,7 +290,7 @@ object PhantomShapesClient : ClientModInitializer {
         }
     }
 
-    fun rerenderAllShapes() {
+    private fun rerenderAllShapes() {
         for (shape in shapes) {
             shape.shouldRerender = true
         }

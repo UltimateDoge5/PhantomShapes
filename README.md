@@ -28,16 +28,17 @@ And even more are coming!
 
 ### Compatibility:
 
-I have not tested this mod with other optimization mods. If you find any incompatibilities, please let me know.
+If you find any incompatibilities, please let me know.
 
 | Mod      | Compatibility |
-|----------|---------------|
-| Optifine | ❓Unknown      |
-| Sodium   | ❓Unknown      |
+|----------|--------------|
+| Optifine | ❓Unknown     |
+| Sodium   | ✅Compatible |
 
 ## How to use:
 
-Upon loading into the game simply press `P` and the shape manager menu will show up.
+Upon loading into the game simply press `K` and the shape manager menu will show up.
+You can change the keybinds in the controls menu.
 From that point, you should be able to use the interface to do anything.
 
 Mod settings can be accessed using the [Mod Menu](https://modrinth.com/mod/modmenu)
