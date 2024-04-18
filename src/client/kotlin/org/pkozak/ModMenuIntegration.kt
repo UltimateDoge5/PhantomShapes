@@ -24,12 +24,24 @@ class ModMenuIntegration : ModMenuApi {
                                 .description(OptionDescription.of(Text.literal("General options for Phantom Shapes")))
                                 .option(options.renderShapesOption)
                                 .option(options.drawOnBlocksOption)
+                                .build()
+                        )
+                        .group(
+                            OptionGroup.createBuilder()
+                                .name(Text.literal("Visuals"))
+                                .description(OptionDescription.of(Text.literal("Change the appearance of the phantom blocks")))
                                 .option(options.drawModeOption)
+                                .option(options.fillOpacityOption)
+                                .option(options.outlineOpacityOption)
                                 .build()
                         )
                         .build()
                 )
-                .save { options.saveToFile() }
+
+                .save {
+                    PhantomShapesClient.rerenderAllShapes()
+                    options.saveToFile()
+                }
                 .build()
                 .generateScreen(parent)
         }

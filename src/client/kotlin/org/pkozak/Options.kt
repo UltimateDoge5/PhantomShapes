@@ -1,14 +1,16 @@
 package org.pkozak
 
-import dev.isxander.yacl3.api.*
+import dev.isxander.yacl3.api.NameableEnum
+import dev.isxander.yacl3.api.Option
+import dev.isxander.yacl3.api.OptionDescription
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder
+import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder
 import kotlinx.serialization.json.*
 import net.minecraft.text.Text
 import org.pkozak.util.SavedDataManager
 import org.pkozak.util.SavedDataManager.Companion.toSafeBoolean
 import java.util.*
-
 
 class Options {
     var renderShapes = true
@@ -33,6 +35,28 @@ class Options {
             .description(OptionDescription.of(Text.translatable("options.phantomshapes.draw_mode.tooltip")))
             .binding(DrawMode.BOTH, { drawMode }, { drawMode = it })
             .controller { opt -> EnumControllerBuilder.create(opt).enumClass(DrawMode::class.java) }.build()
+
+    // Controls the face alpha
+    var fillOpacity = 0.4f
+    val fillOpacityOption: Option<Float> =
+        Option.createBuilder<Float>().name(Text.translatable("options.phantomshapes.fill_opacity"))
+            .description(OptionDescription.of(Text.translatable("options.phantomshapes.fill_opacity.tooltip")))
+            .binding(0.4f, { fillOpacity }, { fillOpacity = it }).controller { opt ->
+                FloatSliderControllerBuilder.create(opt).range(0.0f, 1.0f).step(0.1f).formatValue {
+                    if (it == 0.0f) Text.of("Hidden") else Text.of((it * 100).toInt().toString() + "%")
+                }
+            }.build()
+
+    // Controls the edge alpha
+    var outlineOpacity = 0.7f
+    val outlineOpacityOption: Option<Float> =
+        Option.createBuilder<Float>().name(Text.translatable("options.phantomshapes.outline_opacity"))
+            .description(OptionDescription.of(Text.translatable("options.phantomshapes.outline_opacity.tooltip")))
+            .binding(0.7f, { outlineOpacity }, { outlineOpacity = it }).controller { opt ->
+                FloatSliderControllerBuilder.create(opt).range(0.0f, 1.0f).step(0.1f).formatValue {
+                    if (it == 0.0f) Text.of("Hidden") else Text.of((it * 100).toInt().toString() + "%")
+                }
+            }.build()
 
     // Try loading options from file, upon not finding a value, use the default as a fallback
     init {

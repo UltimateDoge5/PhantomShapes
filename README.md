@@ -31,9 +31,9 @@ And even more are coming!
 If you find any incompatibilities, please let me know.
 
 | Mod      | Compatibility |
-|----------|--------------|
-| Optifine | ❓Unknown     |
-| Sodium   | ✅Compatible |
+|----------|---------------|
+| Optifine | ❓Unknown      |
+| Sodium   | ✅Compatible   |
 
 ## How to use:
 
@@ -45,8 +45,9 @@ Mod settings can be accessed using the [Mod Menu](https://modrinth.com/mod/modme
 
 ## Required libraries
 
-- Fabric API
-- Farbric language Kotlin
+- [Fabric API](https://modrinth.com/mod/fabric-api)
+- [Fabric language Kotlin](https://modrinth.com/mod/fabric-language-kotlin)
+- [YetAnotherConfigLib](https://modrinth.com/mod/yacl)
 
 ### Special thanks
 

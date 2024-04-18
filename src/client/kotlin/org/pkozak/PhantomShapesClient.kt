@@ -191,7 +191,6 @@ object PhantomShapesClient : ClientModInitializer {
                 val red = shape.color.red.toFloat() / 255
                 val green = shape.color.green.toFloat() / 255
                 val blue = shape.color.blue.toFloat() / 255
-                val alpha = 0.4f
 
                 // Build outlines for each block
                 if (options.drawMode != Options.DrawMode.FACES) {
@@ -212,7 +211,7 @@ object PhantomShapesClient : ClientModInitializer {
                         val y2 = end.y.toFloat()
                         val z2 = end.z.toFloat()
 
-                        RenderUtil.buildOutline(buffer, rotatedMatrix, red, green, blue, 1f, x1, y1, z1, x2, y2, z2)
+                        RenderUtil.buildOutline(buffer, rotatedMatrix, red, green, blue, options.outlineOpacity, x1, y1, z1, x2, y2, z2)
                     }
 
                     val builtBuffer = buffer.end()
@@ -246,7 +245,7 @@ object PhantomShapesClient : ClientModInitializer {
                         val y2 = end.y.toFloat()
                         val z2 = end.z.toFloat()
 
-                        RenderUtil.buildQuad(buffer, rotatedMatrix, red, green, blue, alpha, x1, y1, z1, x2, y2, z2)
+                        RenderUtil.buildQuad(buffer, rotatedMatrix, red, green, blue, options.fillOpacity, x1, y1, z1, x2, y2, z2)
                     }
 
                     val builtBuffer = buffer.end()
@@ -290,7 +289,8 @@ object PhantomShapesClient : ClientModInitializer {
         }
     }
 
-    private fun rerenderAllShapes() {
+    fun rerenderAllShapes() {
+        if (client.world == null) return
         for (shape in shapes) {
             shape.shouldRerender = true
         }
