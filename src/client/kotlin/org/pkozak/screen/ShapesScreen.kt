@@ -18,7 +18,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     private var shapeListWidget: ShapeListWidget? = null
 
     override fun init() {
-        shapeListWidget = ShapeListWidget(this, client!!, width, height, 60, 26, shapes)
+        shapeListWidget = ShapeListWidget(this, client!!, width, height - 116, 60, 26, shapes)
         shapeListWidget!!.x = 0
 
         addShapeBtn =
