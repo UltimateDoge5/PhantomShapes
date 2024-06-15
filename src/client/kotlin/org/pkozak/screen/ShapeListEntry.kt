@@ -30,9 +30,9 @@ class ShapeListEntry(
         deleteBtn = ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) { delete() }
             .dimensions(425, 0, 50, 32).build()
 
-        toggleBtn = IconButton.builder {
+        toggleBtn = IconButton.Builder {
             shape.toggleVisibility()
-            toggleBtn!!.icon = getToggleTexture()
+            it.icon = getToggleTexture()
         }
             .dimensions(4, 0, 24, 20)
             .icon(getToggleTexture())

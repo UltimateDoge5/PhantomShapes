@@ -86,7 +86,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
             .dimensions(width / 2 - 100, 180, 200, 20).build()
 
-        rotationButon = IconButton.builder {
+        rotationButon = IconButton.Builder {
             editorRotation += 90
             editorRotation %= 360
             if (editedShape != null) {
@@ -99,7 +99,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             .icon(Icons.ROTATE)
             .build()
 
-        centerBtn = IconButton.builder {
+        centerBtn = IconButton.Builder {
             xCoordsInput!!.text = client?.player?.x?.toInt().toString()
             yCoordsInput!!.text = client?.player?.y?.toInt().toString()
             zCoordsInput!!.text = client?.player?.z?.toInt().toString()
