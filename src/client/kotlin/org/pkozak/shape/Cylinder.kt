@@ -9,7 +9,7 @@ import java.awt.Color
 import kotlin.math.ceil
 
 class Cylinder(
-    override val name: String,
+    override var name: String,
     override var color: Color,
     override var pos: Vec3d,
     override var radius: Int,

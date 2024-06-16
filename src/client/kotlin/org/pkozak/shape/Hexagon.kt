@@ -10,7 +10,7 @@ import java.awt.Color
 import kotlin.math.*
 
 class Hexagon(
-    override val name: String,
+    override var name: String,
     override var color: Color,
     override var pos: Vec3d,
     override var radius: Int,
