@@ -3,15 +3,13 @@ package org.pkozak.screen
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.tooltip.Tooltip
-import net.minecraft.client.gui.widget.ButtonWidget
-import net.minecraft.client.gui.widget.GridWidget
-import net.minecraft.client.gui.widget.IconWidget
-import net.minecraft.client.gui.widget.TextWidget
+import net.minecraft.client.gui.widget.*
 import net.minecraft.screen.ScreenTexts
 import net.minecraft.text.Text
 import net.minecraft.util.Colors
+import net.minecraft.util.math.ColorHelper
+import org.joml.Vector4i
 import org.pkozak.PhantomShapesClient
-import org.pkozak.PhantomShapesClient.logger
 import org.pkozak.shape.Shape
 import org.pkozak.ui.ColorSquare
 import org.pkozak.ui.IconButton
@@ -25,6 +23,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     private var closeBtn: ButtonWidget? = null
     private var grid: GridWidget = GridWidget().setColumnSpacing(10).setRowSpacing(8)
     private var adder = grid.createAdder(8)
+    private var rowsBgCords = listOf<Vector4i>()
 
     override fun init() {
         initGrid()
@@ -47,9 +46,11 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
             remove(it)
         }
 
+        rowsBgCords = listOf()
+
         // Then, create a new grid
-        grid = GridWidget().setColumnSpacing(10).setRowSpacing(8)
-        grid.setPosition(8, 40)
+        grid = GridWidget().setColumnSpacing(10).setRowSpacing(6)
+//        grid.setPosition(8, 40)
 
         // Add the header row
         adder = grid.createAdder(8)
@@ -64,8 +65,44 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         // Add all shapes to the grid
         shapes.forEach { addShapeRow(it) }
         grid.refreshPositions()
+        SimplePositioningWidget.setPos(this.grid, 0, 40, this.width, this.height, 0.5f, 0f)
+
+        var i = 0
+        var x1 = 0
+        var y1 = 0
+        var x2 = 0
+        var y2 = 0
         grid.forEachChild { child ->
+            // Skip the header row from the background drawing
+            if (i < 7) {
+                i++
+                addDrawableChild(child)
+                return@forEachChild
+            }
+            if (i == 7) {
+                x1 = child.x
+            }
+            if (child.y > y1) {
+                y1 = child.y
+            }
+            if (child.width + child.x > x2) {
+                x2 = child.x + child.width
+            }
+            if (child.height + child.y > y2) {
+                y2 = child.y + child.height
+            }
+
+            // For every new row
+            if (i % 7 == 0 && i > 7) {
+                // Add the coordinates of the previous row to the list for background drawing
+                // Change values by +/- 2 to add some padding
+                rowsBgCords += Vector4i(x1 - 2, y1 - 2, x2 + 2, y2)
+                // x1 and x2 is the same for every row, so we don't need to reset it
+                y1 = 0
+                y2 = 0
+            }
             addDrawableChild(child)
+            i++
         }
     }
 
@@ -77,27 +114,53 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         }.size(24, 20).tooltip(Tooltip.of(Text.of("Toggle visibility"))).icon(icon).build()
         adder.add(toggleButton)
 
-        adder.add(TextWidget(Text.of(shape.name), this.textRenderer))
-        adder.add(IconWidget.create(16, 16, shape.getIcon()))
-//        adder.add(TextWidget(Text.of(shape.color.rgb.toString()), this.textRenderer))
+        val nameWidget = TextWidget(Text.of(shape.name), this.textRenderer)
+        nameWidget.height = 22 // We need to set the height manually, otherwise the text will be not centered vertically
+        adder.add(nameWidget)
+
+        adder.add(IconWidget.create(18, 18, shape.getIcon()))
         adder.add(ColorSquare(shape.color))
-        adder.add(TextWidget(Text.of("${shape.pos.x}, ${shape.pos.y}, ${shape.pos.z}"), this.textRenderer))
+
+        val posWidget = TextWidget(Text.of("${shape.pos.x}, ${shape.pos.y}, ${shape.pos.z}"), this.textRenderer)
+        posWidget.height = 22
+        adder.add(posWidget)
 
         val blockAmount = if (shape.blockAmount == -1) "Unknown" else shape.blockAmount.toString()
-        adder.add(TextWidget(Text.of(blockAmount), this.textRenderer))
+        val blockAmountWidget = TextWidget(Text.of(blockAmount), this.textRenderer)
+        blockAmountWidget.height = 22
+        adder.add(blockAmountWidget)
 
         adder.add(ButtonWidget.builder(Text.literal("Edit")) {
             client?.setScreen(ShapeEditorScreen(this, shape))
-        }.width(50).build())
+        }.size(50, 20).build())
 
         adder.add(ButtonWidget.builder(Text.literal("Delete").withColor(Colors.LIGHT_RED)) {
             removeShape(shape)
-        }.width(50).build())
+        }.size(50, 20).build())
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-        super.render(context, mouseX, mouseY, delta)
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, Color.WHITE.rgb)
+
+        for (i in rowsBgCords.indices) {
+            if (i % 2 == 0) {
+                context.fill(
+                    rowsBgCords[i].x,
+                    rowsBgCords[i].y,
+                    rowsBgCords[i].z,
+                    rowsBgCords[i].w,
+                    ColorHelper.Argb.getArgb(32, 0, 0, 0)
+                )
+            } else {
+                context.fill(
+                    rowsBgCords[i].x,
+                    rowsBgCords[i].y,
+                    rowsBgCords[i].z,
+                    rowsBgCords[i].w,
+                    ColorHelper.Argb.getArgb(64, 0, 0, 0)
+                )
+            }
+        }
 
         if (PhantomShapesClient.overwriteProtection) {
             context.drawCenteredTextWithShadow(
@@ -108,6 +171,9 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
                 0xff5555
             )
         }
+
+        // Draw the widgets after the background
+        super.render(context, mouseX, mouseY, delta)
     }
 
     override fun close() {
@@ -124,10 +190,8 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     }
 
     private fun removeShape(shape: Shape) {
-        logger.info("Before: ${shapes.size}")
         shapes.remove(shape)
         // We need to reinitialize the grid from scratch
-        logger.info("afterr: ${shapes.size}")
         initGrid()
     }
 }
