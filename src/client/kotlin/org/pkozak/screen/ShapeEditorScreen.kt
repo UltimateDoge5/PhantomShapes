@@ -179,6 +179,18 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             shapeTypeInput!!.message = Text.literal(shapeType.name.uppercase())
             shapeTypeInput!!.active = false
 
+            // Name change listener
+            shapeNameInput!!.setChangedListener {
+                if (shapeNameInput!!.text.isEmpty()) return@setChangedListener
+                if (parent.shapes.any { it.name == shapeNameInput!!.text }) {
+                    errorText = "Shape with this name already exists"
+                    return@setChangedListener
+                }
+
+                errorText = ""
+                editedShape.name = shapeNameInput!!.text
+            }
+
             // Setup listeners for live position updates
             xCoordsInput!!.setChangedListener { onCoordinateChange() }
             yCoordsInput!!.setChangedListener { onCoordinateChange() }

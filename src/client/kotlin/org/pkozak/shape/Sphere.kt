@@ -9,7 +9,7 @@ import java.awt.Color
 import kotlin.math.ceil
 
 class Sphere(
-    override val name: String, override var color: Color, override var pos: Vec3d, override var radius: Int
+    override var name: String, override var color: Color, override var pos: Vec3d, override var radius: Int
 ) : RadialShape() {
     override val type = ShapeType.SPHERE
     private val positions = mutableSetOf<Vec3d>()

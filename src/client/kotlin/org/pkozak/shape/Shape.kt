@@ -10,7 +10,7 @@ import java.awt.Color
 abstract class Shape {
     abstract var color: Color
     abstract var pos: Vec3d
-    abstract val name: String
+    abstract var name: String
     abstract val type: ShapeType
     var enabled = true
     var rotation = 0.0
