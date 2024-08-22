@@ -66,31 +66,18 @@ object PhantomShapesClient : ClientModInitializer {
             "category.phantomshapes.controls"
         )
     )
-    private lateinit var buff: VertexBuffer
-    private var vboFilled = false
 
     override fun onInitializeClient() {
-//        WorldRenderEvents.END.register { context ->
-//            if (!options.renderShapes) return@register;
-//
-////            matrixStack.push()
-//            RenderSystem.enableBlend()
-//            RenderSystem.enableDepthTest()
-//            RenderSystem.enableCull()
-//            RenderSystem.depthMask(false)
-//            RenderSystem.depthFunc(GL11.GL_ALWAYS)
-//            RenderSystem.setShader(GameRenderer::getPositionColorProgram)
-//
-//            renderShapeBlocks(context)
-//
-//            RenderSystem.disableBlend()
-//            RenderSystem.depthMask(true)
-//            RenderSystem.depthFunc(GL11.GL_LEQUAL)
-////            matrixStack.pop()
-//        }
+        WorldRenderEvents.END.register { context ->
+            if (!options.renderShapes) return@register
 
-        WorldRenderEvents.END.register(WorldRenderEvents.End { context ->
-            if (!options.renderShapes) return@End
+            RenderSystem.enableBlend()
+            RenderSystem.enableDepthTest()
+            RenderSystem.enableCull()
+            RenderSystem.depthMask(true)
+            RenderSystem.depthFunc(GL11.GL_LESS)
+            RenderSystem.setShader(GameRenderer::getPositionColorProgram)
+
             for (shape in shapes) {
                 val distance = shape.pos.distanceTo(context.camera().pos)
                 val renderDistance = MinecraftClient.getInstance().options.viewDistance.value * 16
@@ -99,7 +86,11 @@ object PhantomShapesClient : ClientModInitializer {
                 if (!shape.enabled || distance > renderDistance) continue
                 renderShape(context, shape)
             }
-        })
+
+            RenderSystem.disableBlend()
+            RenderSystem.depthMask(false)
+            RenderSystem.enableCull()
+        }
 
         // Listen for block break events to update rendered shape blocks
         ClientPlayerBlockBreakEvents.AFTER.register { _, _, blockPos, _ ->
@@ -186,11 +177,19 @@ object PhantomShapesClient : ClientModInitializer {
             val blocks = shape.generateBlocks()
             shape.blockAmount = blocks.size
 
+            val red = shape.color.red.toFloat() / 255
+            val green = shape.color.green.toFloat() / 255
+            val blue = shape.color.blue.toFloat() / 255
+
             // Build outlines for each block
             if (options.drawMode != Options.DrawMode.FACES) {
                 val buffer = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
 
                 for (block in blocks) {
+                    if (!options.drawOnBlocks) {
+                        val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
+                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                    }
                     val start = block.subtract(shape.pos)
                     val end = start.add(1.0, 1.0, 1.0)
 
@@ -204,10 +203,10 @@ object PhantomShapesClient : ClientModInitializer {
                     RenderUtil.buildOutline(
                         buffer,
                         positionMatrix,
-                        1f,
-                        1f,
-                        1f,
-                        0.7f,
+                        red,
+                        green,
+                        blue,
+                        options.outlineOpacity,
                         x1,
                         y1,
                         z1,
@@ -228,6 +227,11 @@ object PhantomShapesClient : ClientModInitializer {
                 val buffer = tessellator.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR)
 
                 for (block in blocks) {
+                    if (!options.drawOnBlocks) {
+                        val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
+                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                    }
+
                     val start = block.subtract(shape.pos)
                     val end = start.add(1.0, 1.0, 1.0)
 
@@ -241,10 +245,10 @@ object PhantomShapesClient : ClientModInitializer {
                     RenderUtil.buildQuad(
                         buffer,
                         positionMatrix,
-                        1f,
-                        1f,
-                        1f,
-                        0.7f,
+                        red,
+                        green,
+                        blue,
+                        options.fillOpacity,
                         x1,
                         y1,
                         z1,
@@ -264,12 +268,6 @@ object PhantomShapesClient : ClientModInitializer {
             shape.shouldRerender = false
         }
 
-        RenderSystem.enableBlend()
-        RenderSystem.enableDepthTest()
-        RenderSystem.enableCull()
-        RenderSystem.depthMask(false)
-        RenderSystem.depthFunc(GL11.GL_ALWAYS)
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram)
         val positionMatrix = matrixStack.peek().positionMatrix
 
         if (options.drawMode != Options.DrawMode.EDGES && quadVboMap[shape.name] != null) {
@@ -292,11 +290,6 @@ object PhantomShapesClient : ClientModInitializer {
             )
             VertexBuffer.unbind()
         }
-
-        RenderSystem.disableBlend()
-        RenderSystem.depthMask(true)
-        RenderSystem.enableCull()
-
     }
 
     fun rerenderAllShapes() {
