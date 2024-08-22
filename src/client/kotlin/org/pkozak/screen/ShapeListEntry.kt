@@ -54,11 +54,11 @@ class ShapeListEntry(
     ) {
         val l = y + (entryHeight - client.textRenderer.fontHeight) / 2
 
-        if (index % 2 == 0) {
-            context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(32, 0, 0, 0))
-        } else {
-            context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(64, 0, 0, 0))
-        }
+//        if (index % 2 == 0) {
+//            context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(32, 0, 0, 0))
+//        } else {
+//            context.fill(x, y, x + entryWidth, y + entryHeight, ColorHelper.Argb.getArgb(64, 0, 0, 0))
+//        }
 
         // First render the shape name
         context.drawText(

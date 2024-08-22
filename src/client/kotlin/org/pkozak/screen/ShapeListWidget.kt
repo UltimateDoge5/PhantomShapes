@@ -18,7 +18,6 @@ class ShapeListWidget(
     private val shapeListEntries: MutableList<ShapeListEntry> = mutableListOf()
 
     init {
-        this.setRenderBackground(false)
         for (shape in shapes) {
             addEntry(ShapeListEntry(this, shape, client))
         }
