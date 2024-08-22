@@ -4,16 +4,16 @@ import net.minecraft.util.Identifier
 
 class Icons {
     companion object {
-        val CUBE_ICON = Identifier("phantomshapes", "cube")
-        val SPHERE_ICON = Identifier("phantomshapes", "sphere")
-        val CYLINDER_ICON = Identifier("phantomshapes", "cylinder")
-        val TUNNEL_ICON = Identifier("phantomshapes", "tunnel")
-        val VISIBLE_ICON = Identifier("phantomshapes", "eye_open")
-        val INVISIBLE_ICON = Identifier("phantomshapes", "eye_closed")
-        val ARCH_ICON = Identifier("phantomshapes", "arch")
-        val HEXAGON_ICON = Identifier("phantomshapes", "hexagon")
-        val PIN_ICON = Identifier("phantomshapes", "pin")
-        val ROTATE = Identifier("phantomshapes", "rotate")
-        val DELETE_ICON = Identifier("phantomshapes", "delete")
+        val CUBE_ICON: Identifier = Identifier.of("phantomshapes", "cube")
+        val SPHERE_ICON: Identifier = Identifier.of("phantomshapes", "sphere")
+        val CYLINDER_ICON: Identifier = Identifier.of("phantomshapes", "cylinder")
+        val TUNNEL_ICON: Identifier = Identifier.of("phantomshapes", "tunnel")
+        val VISIBLE_ICON: Identifier = Identifier.of("phantomshapes", "eye_open")
+        val INVISIBLE_ICON: Identifier = Identifier.of("phantomshapes", "eye_closed")
+        val ARCH_ICON: Identifier = Identifier.of("phantomshapes", "arch")
+        val HEXAGON_ICON: Identifier = Identifier.of("phantomshapes", "hexagon")
+        val PIN_ICON: Identifier = Identifier.of("phantomshapes", "pin")
+        val ROTATE: Identifier = Identifier.of("phantomshapes", "rotate")
+//        val DELETE_ICON = Identifier.of("phantomshapes", "delete")
     }
 }

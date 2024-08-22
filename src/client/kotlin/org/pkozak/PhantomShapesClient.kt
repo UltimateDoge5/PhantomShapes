@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
@@ -20,8 +21,9 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import net.minecraft.util.math.BlockPos
-import org.joml.Matrix4f
+import net.minecraft.util.math.RotationAxis
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.opengl.GL11
 import org.pkozak.screen.ShapesScreen
 import org.pkozak.shape.Shape
 import org.pkozak.util.RenderUtil
@@ -66,8 +68,28 @@ object PhantomShapesClient : ClientModInitializer {
     )
 
     override fun onInitializeClient() {
-        WorldRenderEvents.LAST.register {
-            onWorldRendered(it.matrixStack(), it.projectionMatrix())
+        WorldRenderEvents.END.register { context ->
+            if (!options.renderShapes) return@register
+
+            RenderSystem.enableBlend()
+            RenderSystem.enableDepthTest()
+            RenderSystem.enableCull()
+            RenderSystem.depthMask(true)
+            RenderSystem.depthFunc(GL11.GL_LESS)
+            RenderSystem.setShader(GameRenderer::getPositionColorProgram)
+
+            for (shape in shapes) {
+                val distance = shape.pos.distanceTo(context.camera().pos)
+                val renderDistance = MinecraftClient.getInstance().options.viewDistance.value * 16
+
+                // Skip rendering if the shape is disabled or too far away
+                if (!shape.enabled || distance > renderDistance) continue
+                renderShape(context, shape)
+            }
+
+            RenderSystem.disableBlend()
+            RenderSystem.depthMask(false)
+            RenderSystem.enableCull()
         }
 
         // Listen for block break events to update rendered shape blocks
@@ -111,6 +133,7 @@ object PhantomShapesClient : ClientModInitializer {
 
         ServerWorldEvents.UNLOAD.register(ServerWorldEvents.Unload { _, _ ->
             quadVboMap.clear()
+            outlineVboMap.clear()
             shapes.clear()
         })
 
@@ -138,154 +161,134 @@ object PhantomShapesClient : ClientModInitializer {
         })
     }
 
-    private fun onWorldRendered(matrixStack: MatrixStack, projectionMatrix: Matrix4f) {
-        if (!options.renderShapes) return
+    private fun renderShape(context: WorldRenderContext, shape: Shape) {
+        val camera = context.camera()
+        val transformedPosition = shape.pos.subtract(camera.pos)
 
-        matrixStack.push()
-        RenderSystem.enableBlend()
-        RenderSystem.enableDepthTest()
-        RenderSystem.enableCull()
-        RenderSystem.depthMask(false)
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram)
+        val matrixStack = MatrixStack()
+        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.pitch))
+        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.yaw + 180.0f))
+        matrixStack.translate(transformedPosition.x, transformedPosition.y, transformedPosition.z)
 
-        renderShapeBlocks(matrixStack, projectionMatrix)
+        if (shape.shouldRerender) {
+            val positionMatrix = context.matrixStack()!!.peek().positionMatrix
+            val tessellator = Tessellator.getInstance()
 
-        RenderSystem.disableBlend()
-        RenderSystem.depthMask(true)
-        matrixStack.pop()
-    }
+            val blocks = shape.generateBlocks()
+            shape.blockAmount = blocks.size
 
-    private fun renderShapeBlocks(matrixStack: MatrixStack, projectionMatrix: Matrix4f) {
-        val playerPos = MinecraftClient.getInstance().player?.pos
-        val camera = client.gameRenderer.camera
-        val posMatrix = matrixStack.peek().positionMatrix
-            .translate(
-                -(camera.pos.x).toFloat(),
-                -(camera.pos.y).toFloat(),
-                -(camera.pos.z).toFloat()
+            val red = shape.color.red.toFloat() / 255
+            val green = shape.color.green.toFloat() / 255
+            val blue = shape.color.blue.toFloat() / 255
+
+            // Build outlines for each block
+            if (options.drawMode != Options.DrawMode.FACES) {
+                val buffer = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
+
+                for (block in blocks) {
+                    if (!options.drawOnBlocks) {
+                        val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
+                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                    }
+                    val start = block.subtract(shape.pos)
+                    val end = start.add(1.0, 1.0, 1.0)
+
+                    val x1 = start.x.toFloat()
+                    val y1 = start.y.toFloat()
+                    val z1 = start.z.toFloat()
+                    val x2 = end.x.toFloat()
+                    val y2 = end.y.toFloat()
+                    val z2 = end.z.toFloat()
+
+                    RenderUtil.buildOutline(
+                        buffer,
+                        positionMatrix,
+                        red,
+                        green,
+                        blue,
+                        options.outlineOpacity,
+                        x1,
+                        y1,
+                        z1,
+                        x2,
+                        y2,
+                        z2
+                    )
+                }
+
+                val outlinesVbo = VertexBuffer(VertexBuffer.Usage.STATIC)
+                outlinesVbo.bind()
+                outlinesVbo.upload(buffer.end())
+                VertexBuffer.unbind()
+                outlineVboMap[shape.name] = outlinesVbo
+            }
+
+            if (options.drawMode != Options.DrawMode.EDGES) {
+                val buffer = tessellator.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR)
+
+                for (block in blocks) {
+                    if (!options.drawOnBlocks) {
+                        val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
+                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                    }
+
+                    val start = block.subtract(shape.pos)
+                    val end = start.add(1.0, 1.0, 1.0)
+
+                    val x1 = start.x.toFloat()
+                    val y1 = start.y.toFloat()
+                    val z1 = start.z.toFloat()
+                    val x2 = end.x.toFloat()
+                    val y2 = end.y.toFloat()
+                    val z2 = end.z.toFloat()
+
+                    RenderUtil.buildQuad(
+                        buffer,
+                        positionMatrix,
+                        red,
+                        green,
+                        blue,
+                        options.fillOpacity,
+                        x1,
+                        y1,
+                        z1,
+                        x2,
+                        y2,
+                        z2
+                    )
+                }
+
+                val quadsVbo = VertexBuffer(VertexBuffer.Usage.STATIC)
+                quadsVbo.bind()
+                quadsVbo.upload(buffer.end())
+                VertexBuffer.unbind()
+                quadVboMap[shape.name] = quadsVbo
+            }
+
+            shape.shouldRerender = false
+        }
+
+        val positionMatrix = matrixStack.peek().positionMatrix
+
+        if (options.drawMode != Options.DrawMode.EDGES && quadVboMap[shape.name] != null) {
+            quadVboMap[shape.name]!!.bind()
+            quadVboMap[shape.name]!!.draw(
+                positionMatrix,
+                RenderSystem.getProjectionMatrix(),
+                GameRenderer.getPositionColorProgram()
             )
+            VertexBuffer.unbind()
+        }
 
-        for (shape in shapes) {
-            val distance = shape.pos.distanceTo(playerPos)
-            val renderDistance = MinecraftClient.getInstance().options.viewDistance.value * 16
-
-            // Skip rendering if the shape is disabled or too far away
-            if (!shape.enabled || distance > renderDistance) continue
-
-            matrixStack.push()
-
-            val rotatedMatrix = Matrix4f()
-                .translate(
-                    -(camera.pos.x).toFloat(),
-                    -(camera.pos.y).toFloat(),
-                    -(camera.pos.z).toFloat()
-                )
-
-            // Shape data changed, rerender the VBOs
-            if (shape.shouldRerender) {
-                val buffer = Tessellator.getInstance().buffer
-
-                val blocks = shape.generateBlocks()
-                shape.blockAmount = blocks.size
-
-                val red = shape.color.red.toFloat() / 255
-                val green = shape.color.green.toFloat() / 255
-                val blue = shape.color.blue.toFloat() / 255
-
-                // Build outlines for each block
-                if (options.drawMode != Options.DrawMode.FACES) {
-                    buffer.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
-                    for (block in blocks) {
-                        if (!options.drawOnBlocks) {
-                            val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
-                            if (client.world?.getBlockState(blockPos)?.isAir == false) continue
-                        }
-
-                        val start = block.add(client.gameRenderer.camera.pos)
-                        val end = start.add(1.0, 1.0, 1.0)
-
-                        val x1 = start.x.toFloat()
-                        val y1 = start.y.toFloat()
-                        val z1 = start.z.toFloat()
-                        val x2 = end.x.toFloat()
-                        val y2 = end.y.toFloat()
-                        val z2 = end.z.toFloat()
-
-                        RenderUtil.buildOutline(buffer, rotatedMatrix, red, green, blue, options.outlineOpacity, x1, y1, z1, x2, y2, z2)
-                    }
-
-                    val builtBuffer = buffer.end()
-
-                    // Create outline VBO if it doesn't exist, otherwise update it
-                    if (outlineVboMap[shape.name] == null) {
-                        outlineVboMap[shape.name] = RenderUtil.createVBO(builtBuffer)
-                    } else {
-                        outlineVboMap[shape.name]!!.bind()
-                        outlineVboMap[shape.name]!!.upload(builtBuffer)
-                        VertexBuffer.unbind()
-                    }
-                }
-
-                // Now we can build quads for each block
-                if (options.drawMode != Options.DrawMode.EDGES) {
-                    buffer.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR)
-                    for (block in blocks) {
-                        if (!options.drawOnBlocks) {
-                            val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
-                            if (client.world?.getBlockState(blockPos)?.isAir == false) continue
-                        }
-
-                        val start = block.add(client.gameRenderer.camera.pos)
-                        val end = start.add(1.0, 1.0, 1.0)
-
-                        val x1 = start.x.toFloat()
-                        val y1 = start.y.toFloat()
-                        val z1 = start.z.toFloat()
-                        val x2 = end.x.toFloat()
-                        val y2 = end.y.toFloat()
-                        val z2 = end.z.toFloat()
-
-                        RenderUtil.buildQuad(buffer, rotatedMatrix, red, green, blue, options.fillOpacity, x1, y1, z1, x2, y2, z2)
-                    }
-
-                    val builtBuffer = buffer.end()
-
-                    if (quadVboMap[shape.name] == null) {
-                        quadVboMap[shape.name] = RenderUtil.createVBO(builtBuffer)
-                    } else {
-                        quadVboMap[shape.name]!!.bind()
-                        quadVboMap[shape.name]!!.upload(builtBuffer)
-                        VertexBuffer.unbind()
-                    }
-                }
-
-                matrixStack.pop()
-                shape.shouldRerender = false
-            }
-
-            // Render quads using the VBO
-            if (options.drawMode != Options.DrawMode.EDGES && quadVboMap[shape.name] != null) {
-                val vbo = quadVboMap[shape.name]!!
-                vbo.bind()
-                vbo.draw(
-                    posMatrix,
-                    projectionMatrix,
-                    RenderSystem.getShader()
-                )
-                VertexBuffer.unbind()
-            }
-
-            // Render outlines using the outline VBO
-            if (options.drawMode != Options.DrawMode.FACES && outlineVboMap[shape.name] != null) {
-                val outlineVbo = outlineVboMap[shape.name]!!
-                outlineVbo.bind()
-                outlineVbo.draw(
-                    posMatrix,
-                    projectionMatrix,
-                    RenderSystem.getShader()
-                )
-                VertexBuffer.unbind()
-            }
+        if (options.drawMode != Options.DrawMode.FACES && outlineVboMap[shape.name] != null) {
+            val outlineVbo = outlineVboMap[shape.name]!!
+            outlineVbo.bind()
+            outlineVbo.draw(
+                positionMatrix,
+                RenderSystem.getProjectionMatrix(),
+                GameRenderer.getPositionColorProgram()
+            )
+            VertexBuffer.unbind()
         }
     }
 

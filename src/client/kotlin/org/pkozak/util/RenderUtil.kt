@@ -2,11 +2,12 @@ package org.pkozak.util
 
 import net.minecraft.client.gl.VertexBuffer
 import net.minecraft.client.render.BufferBuilder
+import net.minecraft.client.render.BuiltBuffer
 import org.joml.Matrix4f
 
 class RenderUtil {
     companion object {
-        fun createVBO(builtBuffer: BufferBuilder.BuiltBuffer): VertexBuffer {
+        fun createVBO(builtBuffer: BuiltBuffer): VertexBuffer {
             val vbo = VertexBuffer(VertexBuffer.Usage.STATIC)
             vbo.bind()
             vbo.upload(builtBuffer)
@@ -28,35 +29,35 @@ class RenderUtil {
             y2: Float,
             z2: Float
         ) {
-            buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha).next()
+            buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha)
 
-            buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha).next()
+            buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha)
 
-            buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha).next()
+            buffer.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha)
 
-            buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha).next()
+            buffer.vertex(matrix, x2, y2, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha)
 
-            buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha).next()
+            buffer.vertex(matrix, x1, y2, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y2, z2).color(red, green, blue, alpha)
 
-            buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha).next()
-            buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha).next()
+            buffer.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y1, z1).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x2, y1, z2).color(red, green, blue, alpha)
+            buffer.vertex(matrix, x1, y1, z2).color(red, green, blue, alpha)
         }
 
         fun buildOutline(
@@ -73,35 +74,35 @@ class RenderUtil {
             y2: Float,
             z2: Float
         ) {
-            buffer.vertex(rotatedMatrix, x1, y1, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y1, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y1, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y1, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y1, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y1, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y1, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y1, z1).color(red, green, blue, alpha).next();
+            buffer.vertex(rotatedMatrix, x1, y1, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y1, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y1, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y1, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y1, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y1, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y1, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y1, z1).color(red, green, blue, alpha);
 
-            buffer.vertex(rotatedMatrix, x1, y2, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y2, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y2, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y2, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y2, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y2, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y2, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y2, z1).color(red, green, blue, alpha).next();
+            buffer.vertex(rotatedMatrix, x1, y2, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y2, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y2, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y2, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y2, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y2, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y2, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y2, z1).color(red, green, blue, alpha);
 
-            buffer.vertex(rotatedMatrix, x1, y1, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y2, z1).color(red, green, blue, alpha).next();
+            buffer.vertex(rotatedMatrix, x1, y1, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y2, z1).color(red, green, blue, alpha);
 
-            buffer.vertex(rotatedMatrix, x2, y1, z1).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y2, z1).color(red, green, blue, alpha).next();
+            buffer.vertex(rotatedMatrix, x2, y1, z1).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y2, z1).color(red, green, blue, alpha);
 
-            buffer.vertex(rotatedMatrix, x2, y1, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x2, y2, z2).color(red, green, blue, alpha).next();
+            buffer.vertex(rotatedMatrix, x2, y1, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x2, y2, z2).color(red, green, blue, alpha);
 
-            buffer.vertex(rotatedMatrix, x1, y1, z2).color(red, green, blue, alpha).next();
-            buffer.vertex(rotatedMatrix, x1, y2, z2).color(red, green, blue, alpha).next();
+            buffer.vertex(rotatedMatrix, x1, y1, z2).color(red, green, blue, alpha);
+            buffer.vertex(rotatedMatrix, x1, y2, z2).color(red, green, blue, alpha);
         }
     }
 }
