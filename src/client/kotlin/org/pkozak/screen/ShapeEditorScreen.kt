@@ -41,7 +41,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
     private var errorText = ""
     private var shapeType: ShapeType = ShapeType.CUBE
-    private var editorRotation  = 0.0
+    private var editorRotation = 0.0
 
     override fun init() {
         super.init()
@@ -86,7 +86,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
             .dimensions(width / 2 - 100, 180, 200, 20).build()
 
-        rotationButon = IconButton.builder {
+        rotationButon = IconButton.Builder {
             editorRotation += 90
             editorRotation %= 360
             if (editedShape != null) {
@@ -99,7 +99,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             .icon(Icons.ROTATE)
             .build()
 
-        centerBtn = IconButton.builder {
+        centerBtn = IconButton.Builder {
             xCoordsInput!!.text = client?.player?.x?.toInt().toString()
             yCoordsInput!!.text = client?.player?.y?.toInt().toString()
             zCoordsInput!!.text = client?.player?.z?.toInt().toString()
@@ -178,6 +178,18 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             shapeType = editedShape.type
             shapeTypeInput!!.message = Text.literal(shapeType.name.uppercase())
             shapeTypeInput!!.active = false
+
+            // Name change listener
+            shapeNameInput!!.setChangedListener {
+                if (shapeNameInput!!.text.isEmpty()) return@setChangedListener
+                if (parent.shapes.any { it.name == shapeNameInput!!.text }) {
+                    errorText = "Shape with this name already exists"
+                    return@setChangedListener
+                }
+
+                errorText = ""
+                editedShape.name = shapeNameInput!!.text
+            }
 
             // Setup listeners for live position updates
             xCoordsInput!!.setChangedListener { onCoordinateChange() }
@@ -469,6 +481,18 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             return
         }
 
+        try {
+            redInput!!.text.toInt()
+            greenInput!!.text.toInt()
+            blueInput!!.text.toInt()
+        } catch (e: NumberFormatException) {
+            return
+        }
+
+        if (redInput!!.text.toInt() !in 0..255 || greenInput!!.text.toInt() !in 0..255 || blueInput!!.text.toInt() !in 0..255) {
+            return
+        }
+
         val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
         context.fill(blueInput!!.x + 55, blueInput!!.y + 1, blueInput!!.x + 55 + 18, blueInput!!.y + 19, color.rgb)
     }
@@ -553,7 +577,21 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             errorText = "Color cannot be empty"
             return false
         }
-        
+
+        try {
+            redInput!!.text.toInt()
+            greenInput!!.text.toInt()
+            blueInput!!.text.toInt()
+        } catch (e: NumberFormatException) {
+            errorText = "Color values must be numbers"
+            return false
+        }
+
+        if (redInput!!.text.toInt() !in 0..255 || greenInput!!.text.toInt() !in 0..255 || blueInput!!.text.toInt() !in 0..255) {
+            errorText = "Color values must be between 0 and 255"
+            return false
+        }
+
         if (shapeType == ShapeType.CUBE) {
             if (widthInput!!.text.isEmpty() || heightInput!!.text.isEmpty() || depthInput!!.text.isEmpty()) {
                 errorText = "Dimensions cannot be empty"
@@ -605,7 +643,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             }
         }
 
-        if(shapeType == ShapeType.TUNNEL){
+        if (shapeType == ShapeType.TUNNEL) {
             if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
                 errorText = "Radius and length cannot be empty"
                 return false
@@ -622,7 +660,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             }
         }
 
-        if (shapeType == ShapeType.ARCH){
+        if (shapeType == ShapeType.ARCH) {
             if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
                 errorText = "Radius and width cannot be empty"
                 return false
@@ -707,6 +745,10 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             greenInput!!.text.toInt()
             blueInput!!.text.toInt()
         } catch (e: NumberFormatException) {
+            return
+        }
+
+        if (redInput!!.text.toInt() !in 0..255 || greenInput!!.text.toInt() !in 0..255 || blueInput!!.text.toInt() !in 0..255) {
             return
         }
 

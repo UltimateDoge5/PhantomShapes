@@ -11,7 +11,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class Arch(
-    override val name: String,
+    override var name: String,
     override var color: Color,
     override var pos: Vec3d,
     override var radius: Int,

@@ -6,7 +6,7 @@ import net.minecraft.util.math.Vec3i
 import java.awt.Color
 
 class Cube(
-    override val name: String, override var color: Color, override var pos: Vec3d, var dimensions: Vec3i
+    override var name: String, override var color: Color, override var pos: Vec3d, var dimensions: Vec3i
 ) : Shape() {
     override val type = ShapeType.CUBE
 
