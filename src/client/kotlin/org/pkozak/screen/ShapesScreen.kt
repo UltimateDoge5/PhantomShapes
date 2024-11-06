@@ -149,7 +149,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
                     rowsBgCords[i].y,
                     rowsBgCords[i].z,
                     rowsBgCords[i].w,
-                    ColorHelper.Argb.getArgb(32, 0, 0, 0)
+                    ColorHelper.getArgb(32, 0, 0, 0)
                 )
             } else {
                 context.fill(
@@ -157,7 +157,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
                     rowsBgCords[i].y,
                     rowsBgCords[i].z,
                     rowsBgCords[i].w,
-                    ColorHelper.Argb.getArgb(64, 0, 0, 0)
+                    ColorHelper.getArgb(64, 0, 0, 0)
                 )
             }
         }

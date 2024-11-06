@@ -5,6 +5,8 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
+import net.minecraft.client.render.RenderLayer
+import net.minecraft.client.render.RenderLayers
 import net.minecraft.text.Text
 import net.minecraft.util.Colors
 import net.minecraft.util.math.ColorHelper
@@ -367,6 +369,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
         // Render the shape type next to the button
         context.drawGuiTexture(
+            RenderLayer::getGuiTextured,
             Shape.getIcon(shapeType),
             shapeTypeInput!!.x + 62,
             shapeTypeInput!!.y - 1,
@@ -475,7 +478,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     }
 
     private fun drawColorBox(context: DrawContext) {
-        context.drawBorder(blueInput!!.x + 54, blueInput!!.y, 20, 20, ColorHelper.Argb.getArgb(200, 255, 255, 255))
+        context.drawBorder(blueInput!!.x + 54, blueInput!!.y, 20, 20, ColorHelper.getArgb(200, 255, 255, 255))
 
         if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
             return

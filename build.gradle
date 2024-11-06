@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.6-SNAPSHOT'
+    id 'fabric-loom' version '1.8-SNAPSHOT'
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version "1.9.23"
     id "org.jetbrains.kotlin.plugin.serialization" version "1.9.23"
@@ -14,10 +14,13 @@ base {
 
 repositories {
     maven { url 'https://jitpack.io' }
-    maven { url "https://maven.terraformersmc.com/" } // Mod Menu
     maven {
-        name 'Xander Maven'
-        url 'https://maven.isxander.dev/releases'
+        name = "Terraformers"
+        url = "https://maven.terraformersmc.com/"
+    } // Mod Menu
+    maven {
+        name "Xander Maven"
+        url "https://maven.isxander.dev/releases"
     } //  Config Lib
 }
 

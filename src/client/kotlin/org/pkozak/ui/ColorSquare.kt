@@ -37,7 +37,7 @@ class ColorSquare(
     }
 
     override fun renderWidget(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-        context.drawBorder(x, y, 16, 16, ColorHelper.Argb.getArgb(140, 255, 255, 255))
+        context.drawBorder(x, y, 16, 16, ColorHelper.getArgb(140, 255, 255, 255))
         context.fill(x + 1, y + 1, x + 15, y + 15, color.rgb)
     }
 

@@ -10,6 +10,9 @@ import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gl.GlUsage
+import net.minecraft.client.gl.ShaderProgramKey
+import net.minecraft.client.gl.ShaderProgramKeys
 import net.minecraft.client.gl.VertexBuffer
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.render.GameRenderer
@@ -76,7 +79,8 @@ object PhantomShapesClient : ClientModInitializer {
             RenderSystem.enableCull()
             RenderSystem.depthMask(true)
             RenderSystem.depthFunc(GL11.GL_LESS)
-            RenderSystem.setShader(GameRenderer::getPositionColorProgram)
+//            RenderSystem.setShader(GameRenderer::getPositionColorProgram)
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR)
 
             for (shape in shapes) {
                 val distance = shape.pos.distanceTo(context.camera().pos)
@@ -216,7 +220,7 @@ object PhantomShapesClient : ClientModInitializer {
                     )
                 }
 
-                val outlinesVbo = VertexBuffer(VertexBuffer.Usage.STATIC)
+                val outlinesVbo = VertexBuffer(GlUsage.STATIC_WRITE)
                 outlinesVbo.bind()
                 outlinesVbo.upload(buffer.end())
                 VertexBuffer.unbind()
@@ -258,7 +262,7 @@ object PhantomShapesClient : ClientModInitializer {
                     )
                 }
 
-                val quadsVbo = VertexBuffer(VertexBuffer.Usage.STATIC)
+                val quadsVbo = VertexBuffer(GlUsage.STATIC_WRITE)
                 quadsVbo.bind()
                 quadsVbo.upload(buffer.end())
                 VertexBuffer.unbind()
@@ -275,7 +279,7 @@ object PhantomShapesClient : ClientModInitializer {
             quadVboMap[shape.name]!!.draw(
                 positionMatrix,
                 RenderSystem.getProjectionMatrix(),
-                GameRenderer.getPositionColorProgram()
+                RenderSystem.getShader()
             )
             VertexBuffer.unbind()
         }
@@ -286,7 +290,7 @@ object PhantomShapesClient : ClientModInitializer {
             outlineVbo.draw(
                 positionMatrix,
                 RenderSystem.getProjectionMatrix(),
-                GameRenderer.getPositionColorProgram()
+                RenderSystem.getShader()
             )
             VertexBuffer.unbind()
         }
