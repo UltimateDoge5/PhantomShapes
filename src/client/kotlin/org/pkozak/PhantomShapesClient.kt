@@ -11,11 +11,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.GlUsage
-import net.minecraft.client.gl.ShaderProgramKey
 import net.minecraft.client.gl.ShaderProgramKeys
 import net.minecraft.client.gl.VertexBuffer
 import net.minecraft.client.option.KeyBinding
-import net.minecraft.client.render.GameRenderer
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormat.DrawMode
 import net.minecraft.client.render.VertexFormats
@@ -74,12 +72,12 @@ object PhantomShapesClient : ClientModInitializer {
         WorldRenderEvents.END.register { context ->
             if (!options.renderShapes) return@register
 
+            context.matrixStack()!!.push()
             RenderSystem.enableBlend()
-            RenderSystem.enableDepthTest()
-            RenderSystem.enableCull()
+            RenderSystem.disableCull()
             RenderSystem.depthMask(true)
-            RenderSystem.depthFunc(GL11.GL_LESS)
-//            RenderSystem.setShader(GameRenderer::getPositionColorProgram)
+            RenderSystem.enableDepthTest()
+            RenderSystem.depthFunc(GL11.GL_LEQUAL)
             RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR)
 
             for (shape in shapes) {
@@ -92,8 +90,9 @@ object PhantomShapesClient : ClientModInitializer {
             }
 
             RenderSystem.disableBlend()
-            RenderSystem.depthMask(false)
-            RenderSystem.enableCull()
+            RenderSystem.disableDepthTest()
+            RenderSystem.disableCull()
+            context.matrixStack()!!.pop()
         }
 
         // Listen for block break events to update rendered shape blocks
@@ -192,7 +191,8 @@ object PhantomShapesClient : ClientModInitializer {
                 for (block in blocks) {
                     if (!options.drawOnBlocks) {
                         val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
-                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                        val blockState = client.world?.getBlockState(blockPos) ?: continue
+                        if (!blockState.isAir && !blockState.isReplaceable) continue
                     }
                     val start = block.subtract(shape.pos)
                     val end = start.add(1.0, 1.0, 1.0)
@@ -233,7 +233,8 @@ object PhantomShapesClient : ClientModInitializer {
                 for (block in blocks) {
                     if (!options.drawOnBlocks) {
                         val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
-                        if (client.world?.getBlockState(blockPos)?.isAir == false) continue
+                        val blockState = client.world?.getBlockState(blockPos) ?: continue
+                        if (!blockState.isAir && !blockState.isReplaceable) continue
                     }
 
                     val start = block.subtract(shape.pos)
