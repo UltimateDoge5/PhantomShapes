@@ -15,6 +15,7 @@ abstract class Shape {
     var enabled = true
     var rotation = 0.0
     var shouldRerender = true
+    var shouldReorder = false
     var blockAmount = -1 // -1 means unknown - the amount wasn't calculated yet
 
     abstract fun generateBlocks(): MutableSet<Vec3d>

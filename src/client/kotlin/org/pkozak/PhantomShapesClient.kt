@@ -23,6 +23,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.RotationAxis
+import net.minecraft.util.math.Vec3d
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import org.pkozak.screen.ShapesScreen
@@ -31,18 +32,27 @@ import org.pkozak.util.RenderUtil
 import org.pkozak.util.SavedDataManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.math.abs
 
 
 object PhantomShapesClient : ClientModInitializer {
     val logger: Logger = LoggerFactory.getLogger("phantomshapes")
-    val client: MinecraftClient = MinecraftClient.getInstance()
+    private val client: MinecraftClient = MinecraftClient.getInstance()
     val options = Options()
 
     var overwriteProtection = false
 
     private var shapes = mutableListOf<Shape>()
+    private var shapeBlockCache = mutableMapOf<String, Set<Vec3d>>()
     private var quadVboMap = mutableMapOf<String, VertexBuffer>()
     private var outlineVboMap = mutableMapOf<String, VertexBuffer>()
+
+    private const val POSITION_THRESHOLD: Double = 0.04 // Minimum distance change to trigger re-sort
+    private const val ROTATION_THRESHOLD: Double = 0.5 // Minimum rotation angle change to trigger re-sort
+
+    private var lastCameraPosition: Vec3d? = null
+    private var lastCameraYaw = 0f
+    private var lastCameraPitch = 0f
 
     private var menuKeyBinding = KeyBindingHelper.registerKeyBinding(
         KeyBinding(
@@ -72,9 +82,24 @@ object PhantomShapesClient : ClientModInitializer {
         WorldRenderEvents.END.register { context ->
             if (!options.renderShapes) return@register
 
+            val camera = context.camera()
+
+            if (options.drawMode != Options.DrawMode.EDGES && needsResort(camera.pos, camera.yaw, camera.pitch)) {
+                // Check which shapes are on the screen
+                for (shape in shapes) {
+                    val distance = shape.pos.distanceTo(camera.pos)
+                    val renderDistance = MinecraftClient.getInstance().options.viewDistance.value * 16
+
+                    // Skip rendering if the shape is disabled or too far away
+                    if (!shape.enabled || distance > renderDistance) continue
+                    //TODO: Explore potential optimization by checking if the shape is in the camera's view frustum
+                    shape.shouldReorder = true
+                }
+            }
+
             context.matrixStack()!!.push()
             RenderSystem.enableBlend()
-            RenderSystem.disableCull()
+            RenderSystem.enableCull()
             RenderSystem.depthMask(true)
             RenderSystem.enableDepthTest()
             RenderSystem.depthFunc(GL11.GL_LEQUAL)
@@ -89,9 +114,10 @@ object PhantomShapesClient : ClientModInitializer {
                 renderShape(context, shape)
             }
 
+            updateLastCameraState(camera.pos, camera.yaw, camera.pitch)
+
             RenderSystem.disableBlend()
             RenderSystem.disableDepthTest()
-            RenderSystem.disableCull()
             context.matrixStack()!!.pop()
         }
 
@@ -173,13 +199,21 @@ object PhantomShapesClient : ClientModInitializer {
         matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.yaw + 180.0f))
         matrixStack.translate(transformedPosition.x, transformedPosition.y, transformedPosition.z)
 
-        if (shape.shouldRerender) {
+        if (shape.shouldRerender || shape.shouldReorder) {
             val positionMatrix = context.matrixStack()!!.peek().positionMatrix
             val tessellator = Tessellator.getInstance()
 
-            val blocks = shape.generateBlocks()
-            shape.blockAmount = blocks.size
+            // If the shape is not in the cache or a rerender is requested, generate the blocks
+            val blocks: List<Vec3d> = if (shapeBlockCache.containsKey(shape.name) && shape.shouldReorder) {
+                shape.shouldReorder = false
+                shapeBlockCache[shape.name]!!
+            } else {
+                val blockList = shape.generateBlocks()
+                shapeBlockCache[shape.name] = blockList
+                blockList
+            }.sortedBy { it.distanceTo(camera.pos) } // Sort the blocks by distance to the camera
 
+            shape.blockAmount = blocks.size
             val red = shape.color.red.toFloat() / 255
             val green = shape.color.green.toFloat() / 255
             val blue = shape.color.blue.toFloat() / 255
@@ -220,7 +254,8 @@ object PhantomShapesClient : ClientModInitializer {
                     )
                 }
 
-                val outlinesVbo = VertexBuffer(GlUsage.STATIC_WRITE)
+                // Reuse the VBO if it already exists
+                val outlinesVbo = outlineVboMap[shape.name] ?: VertexBuffer(GlUsage.DYNAMIC_WRITE)
                 outlinesVbo.bind()
                 outlinesVbo.upload(buffer.end())
                 VertexBuffer.unbind()
@@ -263,7 +298,8 @@ object PhantomShapesClient : ClientModInitializer {
                     )
                 }
 
-                val quadsVbo = VertexBuffer(GlUsage.STATIC_WRITE)
+                // Reuse the VBO if it already exists
+                val quadsVbo = quadVboMap[shape.name] ?: VertexBuffer(GlUsage.DYNAMIC_WRITE)
                 quadsVbo.bind()
                 quadsVbo.upload(buffer.end())
                 VertexBuffer.unbind()
@@ -295,6 +331,24 @@ object PhantomShapesClient : ClientModInitializer {
             )
             VertexBuffer.unbind()
         }
+    }
+
+    private fun needsResort(currentPos: Vec3d, currentYaw: Float, currentPitch: Float): Boolean {
+        if (lastCameraPosition == null) {
+            updateLastCameraState(currentPos, currentYaw, currentPitch)
+            return false
+        }
+        val distanceMoved = currentPos.distanceTo(lastCameraPosition)
+        val yawChange = abs((currentYaw - lastCameraYaw).toDouble()).toFloat()
+        val pitchChange = abs((currentPitch - lastCameraPitch).toDouble()).toFloat()
+
+        return distanceMoved > POSITION_THRESHOLD || yawChange > ROTATION_THRESHOLD || pitchChange > ROTATION_THRESHOLD
+    }
+
+    private fun updateLastCameraState(position: Vec3d, yaw: Float, pitch: Float) {
+        this.lastCameraPosition = position
+        this.lastCameraYaw = yaw
+        this.lastCameraPitch = pitch
     }
 
     fun rerenderAllShapes() {
