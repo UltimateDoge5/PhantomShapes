@@ -35,8 +35,16 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
         closeBtn =
             ButtonWidget.builder(ScreenTexts.DONE) { close() }.dimensions(width / 2 + 5, height - 40, 200, 20).build()
 
+        val settingsBtn = ButtonWidget.Builder(Text.literal("Settings")) {
+            client?.setScreen(SettingsScreen.generateScreen(this))
+        }
+            .tooltip(Tooltip.of(Text.of("Settings of the mod")))
+            .dimensions(width - 85, 5, 80, 20)
+            .build()
+
         addDrawableChild(addShapeBtn)
         addDrawableChild(closeBtn)
+        addDrawableChild(settingsBtn)
     }
 
     // We need to reset the grid if we want to refresh it since we can't remove rows from it
@@ -50,7 +58,6 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
 
         // Then, create a new grid
         grid = GridWidget().setColumnSpacing(10).setRowSpacing(6)
-//        grid.setPosition(8, 40)
 
         // Add the header row
         adder = grid.createAdder(8)

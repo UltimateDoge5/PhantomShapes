@@ -1,6 +1,7 @@
 package org.pkozak.shape
 
 import kotlinx.serialization.json.*
+import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import java.awt.Color
@@ -29,6 +30,10 @@ class Cube(
 
     override fun isInRange(x: Int, z: Int): Boolean {
         return x >= pos.x && x <= pos.x + dimensions.x && z >= pos.z && z <= pos.z + dimensions.z
+    }
+
+    override fun getBoundingBox(): Box {
+        return Box(pos.x, pos.y, pos.z, pos.x + dimensions.x, pos.y + dimensions.y, pos.z + dimensions.z)
     }
 
     override fun toJsonObject(): JsonObject {

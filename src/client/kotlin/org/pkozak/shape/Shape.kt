@@ -1,6 +1,7 @@
 package org.pkozak.shape
 
 import kotlinx.serialization.json.JsonObject
+import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.ui.Icons
@@ -21,6 +22,8 @@ abstract class Shape {
     abstract fun generateBlocks(): MutableSet<Vec3d>
 
     abstract fun isInRange(x: Int, z: Int): Boolean
+
+    abstract fun getBoundingBox(): Box
 
     fun toggleVisibility() {
         enabled = !enabled

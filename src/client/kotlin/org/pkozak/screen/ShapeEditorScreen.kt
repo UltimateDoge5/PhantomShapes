@@ -11,6 +11,7 @@ import net.minecraft.util.Colors
 import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
+import org.pkozak.PhantomShapesClient
 import org.pkozak.shape.Shape
 import org.pkozak.shape.ShapeType
 import org.pkozak.shape.*
@@ -190,6 +191,8 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
                 errorText = ""
                 editedShape.name = shapeNameInput!!.text
+                editedShape.shouldRerender = true
+                PhantomShapesClient.cleanupBuffers()
             }
 
             // Setup listeners for live position updates

@@ -10,13 +10,10 @@ import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gl.GlUsage
 import net.minecraft.client.gl.ShaderProgramKeys
 import net.minecraft.client.gl.VertexBuffer
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.render.Tessellator
-import net.minecraft.client.render.VertexFormat.DrawMode
-import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.Text
@@ -43,7 +40,9 @@ object PhantomShapesClient : ClientModInitializer {
     var overwriteProtection = false
 
     private var shapes = mutableListOf<Shape>()
-    private var shapeBlockCache = mutableMapOf<String, Set<Vec3d>>()
+    private var shapeBlockCache = mutableMapOf<String, List<Vec3d>>()
+
+    // Make two buffers, one for each draw mode
     private var quadVboMap = mutableMapOf<String, VertexBuffer>()
     private var outlineVboMap = mutableMapOf<String, VertexBuffer>()
 
@@ -85,14 +84,24 @@ object PhantomShapesClient : ClientModInitializer {
             val camera = context.camera()
 
             if (options.drawMode != Options.DrawMode.EDGES && needsResort(camera.pos, camera.yaw, camera.pitch)) {
-                // Check which shapes are on the screen
+                // Sort shapes from farthest to nearest to ensure correct rendering order to retain correct transparency
+                // when looking through multiple shapes
+                shapes.sortWith { shape1, shape2 ->
+                    val dist1: Double = shape1.pos.distanceTo(camera.pos)
+                    val dist2: Double = shape2.pos.distanceTo(camera.pos)
+                    dist2.compareTo(dist1)
+                }
+
+                val frustum = context.frustum()!!
                 for (shape in shapes) {
                     val distance = shape.pos.distanceTo(camera.pos)
                     val renderDistance = MinecraftClient.getInstance().options.viewDistance.value * 16
 
                     // Skip rendering if the shape is disabled or too far away
                     if (!shape.enabled || distance > renderDistance) continue
-                    //TODO: Explore potential optimization by checking if the shape is in the camera's view frustum
+
+                    // Check if the shape is visible in the frustum
+                    if (!frustum.isVisible(shape.getBoundingBox())) continue
                     shape.shouldReorder = true
                 }
             }
@@ -184,7 +193,7 @@ object PhantomShapesClient : ClientModInitializer {
             while (rerenderShapesKeyBinding.wasPressed()) {
                 rerenderAllShapes()
                 client.player?.sendMessage(
-                    Text.literal("Rerendered all shapes"), true
+                    Text.literal("Re-rendered all shapes"), true
                 )
             }
         })
@@ -208,102 +217,45 @@ object PhantomShapesClient : ClientModInitializer {
                 shape.shouldReorder = false
                 shapeBlockCache[shape.name]!!
             } else {
-                val blockList = shape.generateBlocks()
-                shapeBlockCache[shape.name] = blockList
-                blockList
-            }.sortedBy { it.distanceTo(camera.pos) } // Sort the blocks by distance to the camera
+                var blockList = shape.generateBlocks().toList()
 
-            shape.blockAmount = blocks.size
-            val red = shape.color.red.toFloat() / 255
-            val green = shape.color.green.toFloat() / 255
-            val blue = shape.color.blue.toFloat() / 255
-
-            // Build outlines for each block
-            if (options.drawMode != Options.DrawMode.FACES) {
-                val buffer = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR)
-
-                for (block in blocks) {
-                    if (!options.drawOnBlocks) {
+                // No need for this to happen while reordering, only way for this to change is a block placement/breakage
+                // Such events trigger a re-render
+                if (!options.drawOnBlocks) {
+                    blockList = blockList.filter { block ->
                         val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
-                        val blockState = client.world?.getBlockState(blockPos) ?: continue
-                        if (!blockState.isAir && !blockState.isReplaceable) continue
+                        val blockState = client.world?.getBlockState(blockPos) ?: return@filter false
+                        blockState.isAir || blockState.isReplaceable
                     }
-                    val start = block.subtract(shape.pos)
-                    val end = start.add(1.0, 1.0, 1.0)
-
-                    val x1 = start.x.toFloat()
-                    val y1 = start.y.toFloat()
-                    val z1 = start.z.toFloat()
-                    val x2 = end.x.toFloat()
-                    val y2 = end.y.toFloat()
-                    val z2 = end.z.toFloat()
-
-                    RenderUtil.buildOutline(
-                        buffer,
-                        positionMatrix,
-                        red,
-                        green,
-                        blue,
-                        options.outlineOpacity,
-                        x1,
-                        y1,
-                        z1,
-                        x2,
-                        y2,
-                        z2
-                    )
                 }
 
-                // Reuse the VBO if it already exists
-                val outlinesVbo = outlineVboMap[shape.name] ?: VertexBuffer(GlUsage.DYNAMIC_WRITE)
-                outlinesVbo.bind()
-                outlinesVbo.upload(buffer.end())
-                VertexBuffer.unbind()
-                outlineVboMap[shape.name] = outlinesVbo
+                shapeBlockCache[shape.name] = blockList
+                blockList
+            }.sortedBy { it.squaredDistanceTo(camera.pos) } // Sort the blocks by distance to the camera
+
+            shape.blockAmount = blocks.size
+
+            // Build outlines for each block
+            if (options.drawMode != Options.DrawMode.FACES && !shape.shouldReorder) {
+                RenderUtil.populateShapeBuffer(
+                    tessellator,
+                    positionMatrix,
+                    Options.DrawMode.EDGES,
+                    blocks,
+                    shape,
+                    outlineVboMap,
+                )
             }
 
             if (options.drawMode != Options.DrawMode.EDGES) {
-                val buffer = tessellator.begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR)
-
-                for (block in blocks) {
-                    if (!options.drawOnBlocks) {
-                        val blockPos = BlockPos(block.x.toInt(), block.y.toInt(), block.z.toInt())
-                        val blockState = client.world?.getBlockState(blockPos) ?: continue
-                        if (!blockState.isAir && !blockState.isReplaceable) continue
-                    }
-
-                    val start = block.subtract(shape.pos)
-                    val end = start.add(1.0, 1.0, 1.0)
-
-                    val x1 = start.x.toFloat()
-                    val y1 = start.y.toFloat()
-                    val z1 = start.z.toFloat()
-                    val x2 = end.x.toFloat()
-                    val y2 = end.y.toFloat()
-                    val z2 = end.z.toFloat()
-
-                    RenderUtil.buildQuad(
-                        buffer,
-                        positionMatrix,
-                        red,
-                        green,
-                        blue,
-                        options.fillOpacity,
-                        x1,
-                        y1,
-                        z1,
-                        x2,
-                        y2,
-                        z2
-                    )
-                }
-
-                // Reuse the VBO if it already exists
-                val quadsVbo = quadVboMap[shape.name] ?: VertexBuffer(GlUsage.DYNAMIC_WRITE)
-                quadsVbo.bind()
-                quadsVbo.upload(buffer.end())
-                VertexBuffer.unbind()
-                quadVboMap[shape.name] = quadsVbo
+                RenderUtil.populateShapeBuffer(
+                    tessellator,
+                    positionMatrix,
+                    Options.DrawMode.FACES,
+                    blocks,
+                    shape,
+                    quadVboMap,
+                )
             }
 
             shape.shouldRerender = false
@@ -353,8 +305,17 @@ object PhantomShapesClient : ClientModInitializer {
 
     fun rerenderAllShapes() {
         if (client.world == null) return
+        logger.info("camera position: ${client.cameraEntity?.pos}")
         for (shape in shapes) {
             shape.shouldRerender = true
         }
+    }
+
+    /** Get rid of unused buffers when shape's name got changed */
+    fun cleanupBuffers() {
+        val shapeNames = shapes.map { it.name }
+        quadVboMap.keys.removeIf { it !in shapeNames }
+        outlineVboMap.keys.removeIf { it !in shapeNames }
+        shapeBlockCache.keys.removeIf { it !in shapeNames }
     }
 }
