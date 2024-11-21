@@ -12,8 +12,6 @@ import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.PhantomShapesClient
-import org.pkozak.shape.Shape
-import org.pkozak.shape.ShapeType
 import org.pkozak.shape.*
 import org.pkozak.ui.IconButton
 import org.pkozak.ui.Icons
@@ -36,6 +34,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     private var heightInput: TextFieldWidget? = null
     private var depthInput: TextFieldWidget? = null
     private var radiusInput: TextFieldWidget? = null
+    private var sidesInput: TextFieldWidget? = null
 
     private var confirmBtn: ButtonWidget? = null
     private var centerBtn: IconButton? = null
@@ -44,6 +43,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     private var errorText = ""
     private var shapeType: ShapeType = ShapeType.CUBE
     private var editorRotation = 0.0
+    private var originalShape = editedShape?.toJsonObject()
 
     override fun init() {
         super.init()
@@ -86,16 +86,17 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             if (editedShape == null) createShape()
             close()
         }
-            .dimensions(width / 2 - 100, 180, 200, 20).build()
+            .dimensions(width / 2 - 205, 200, 200, 20).build()
 
         val cancelBtn = ButtonWidget.builder(Text.literal("Cancel")) {
             if (editedShape != null) {
-                editedShape = originalShape
+                val reconstructedShape = Shape.fromJsonObject(originalShape!!)
+                parent.shapes[parent.shapes.indexOf(editedShape)] = reconstructedShape
                 PhantomShapesClient.cleanupBuffers()
             }
             close()
         }
-            .dimensions(width / 2 - 100, 200, 200, 20).build()
+            .dimensions(width / 2 + 5, 200, 200, 20).build()
 
         rotationButon = IconButton.Builder {
             editorRotation += 90
@@ -148,7 +149,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
                 "arch" -> {
                     shapeTypeInput!!.message = Text.literal("Hexagon")
-                    shapeType = ShapeType.HEXAGON
+                    shapeType = ShapeType.POLYGON
                 }
 
                 "hexagon" -> {
@@ -179,9 +180,13 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         radiusInput!!.setPlaceholder(Text.literal("Radius"))
         radiusInput!!.text = "5"
 
+        sidesInput =
+            TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20 + 108, 100, 50, 20, Text.literal("Sides"))
+        sidesInput!!.setPlaceholder(Text.literal("Sides"))
+        sidesInput!!.text = "6"
+
         // If the shape is not null, it means we are editing an existing shape
         if (editedShape != null) {
-            originalShape = editedShape
             shapeNameInput!!.text = editedShape.name
             xCoordsInput!!.text = editedShape.pos.x.toInt().toString()
             yCoordsInput!!.text = editedShape.pos.y.toInt().toString()
@@ -240,15 +245,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                         onRadiusChange()
                     }
                     heightInput!!.setChangedListener {
-                        if (heightInput!!.text.isEmpty()) return@setChangedListener
-                        try {
-                            heightInput!!.text.toInt()
-                        } catch (e: NumberFormatException) {
-                            return@setChangedListener
-                        }
-
-                        editedShape.height = heightInput!!.text.toInt()
-                        editedShape.shouldRerender = true
+                        onHeightChange()
                     }
                 }
 
@@ -261,15 +258,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                         onRadiusChange()
                     }
                     heightInput!!.setChangedListener {
-                        if (heightInput!!.text.isEmpty()) return@setChangedListener
-                        try {
-                            heightInput!!.text.toInt()
-                        } catch (e: NumberFormatException) {
-                            return@setChangedListener
-                        }
-
-                        editedShape.height = heightInput!!.text.toInt()
-                        editedShape.shouldRerender = true
+                        onHeightChange()
                     }
                 }
 
@@ -282,33 +271,30 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                         onRadiusChange()
                     }
                     heightInput!!.setChangedListener {
-                        if (heightInput!!.text.isEmpty()) return@setChangedListener
-                        try {
-                            heightInput!!.text.toInt()
-                        } catch (e: NumberFormatException) {
-                            return@setChangedListener
-                        }
-
-                        editedShape.width = heightInput!!.text.toInt()
-                        editedShape.shouldRerender = true
+                        onHeightChange()
                     }
                 }
 
-                ShapeType.HEXAGON -> {
-                    radiusInput!!.text = (editedShape as Hexagon).radius.toString()
+                ShapeType.POLYGON -> {
+                    radiusInput!!.text = (editedShape as Polygon).radius.toString()
                     heightInput!!.text = editedShape.height.toString()
+                    sidesInput!!.text = editedShape.sides.toString()
                     radiusInput!!.setChangedListener {
                         onRadiusChange()
                     }
                     heightInput!!.setChangedListener {
-                        if (heightInput!!.text.isEmpty()) return@setChangedListener
+                        onHeightChange()
+                    }
+                    sidesInput!!.setChangedListener {
+                        if (sidesInput!!.text.isEmpty()) return@setChangedListener
                         try {
-                            heightInput!!.text.toInt()
+                            sidesInput!!.text.toInt()
                         } catch (e: NumberFormatException) {
                             return@setChangedListener
                         }
 
-                        editedShape.height = heightInput!!.text.toInt()
+
+                        editedShape.sides = sidesInput!!.text.toInt()
                         editedShape.shouldRerender = true
                     }
                 }
@@ -323,6 +309,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
 
         addDrawableChild(confirmBtn)
+        addDrawableChild(cancelBtn)
         addDrawableChild(centerBtn)
         addDrawableChild(shapeNameInput)
         addDrawableChild(shapeTypeInput)
@@ -416,7 +403,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 )
             }
 
-            ShapeType.CYLINDER, ShapeType.HEXAGON -> {
+            ShapeType.CYLINDER -> {
                 context.drawText(
                     textRenderer,
                     "Radius",
@@ -431,6 +418,35 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                     "Height",
                     heightInput!!.x,
                     heightInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+            }
+
+            ShapeType.POLYGON -> {
+                context.drawText(
+                    textRenderer,
+                    "Radius",
+                    radiusInput!!.x,
+                    radiusInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+
+                context.drawText(
+                    textRenderer,
+                    "Height",
+                    heightInput!!.x,
+                    heightInput!!.y - 10,
+                    0xFFFFFF,
+                    true
+                )
+
+                context.drawText(
+                    textRenderer,
+                    "Sides",
+                    sidesInput!!.x,
+                    sidesInput!!.y - 10,
                     0xFFFFFF,
                     true
                 )
@@ -496,23 +512,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     private fun drawColorBox(context: DrawContext) {
         context.drawBorder(blueInput!!.x + 54, blueInput!!.y, 20, 20, ColorHelper.getArgb(200, 255, 255, 255))
 
-        if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
-            return
-        }
-
-        try {
-            redInput!!.text.toInt()
-            greenInput!!.text.toInt()
-            blueInput!!.text.toInt()
-        } catch (e: NumberFormatException) {
-            return
-        }
-
-        if (redInput!!.text.toInt() !in 0..255 || greenInput!!.text.toInt() !in 0..255 || blueInput!!.text.toInt() !in 0..255) {
-            return
-        }
-
-        val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
+        val color = validateColor() ?: return
         context.fill(blueInput!!.x + 55, blueInput!!.y + 1, blueInput!!.x + 55 + 18, blueInput!!.y + 19, color.rgb)
     }
 
@@ -561,10 +561,11 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 }
             }
 
-            ShapeType.HEXAGON -> {
+            ShapeType.POLYGON -> {
                 val radius = radiusInput!!.text.toInt()
                 val height = heightInput!!.text.toInt()
-                Hexagon(name, color, pos, radius, height)
+                val sides = sidesInput!!.text.toInt()
+                Polygon(name, color, pos, radius, height, sides)
             }
         }
 
@@ -645,7 +646,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             }
         }
 
-        if (shapeType == ShapeType.CYLINDER || shapeType == ShapeType.HEXAGON) {
+        if (shapeType == ShapeType.CYLINDER || shapeType == ShapeType.POLYGON) {
             if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
                 errorText = "Radius and height cannot be empty"
                 return false
@@ -658,6 +659,29 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 }
             } catch (e: NumberFormatException) {
                 errorText = "Radius and height must be numbers"
+                return false
+            }
+        }
+
+        if (shapeType == ShapeType.POLYGON) {
+            if (sidesInput!!.text.isEmpty()) {
+                errorText = "Sides cannot be empty"
+                return false
+            }
+
+            try {
+                if (sidesInput!!.text.toInt() < 3) {
+                    errorText = "Polygon must have at least 3 sides"
+                    return false
+                }
+
+                if (sidesInput!!.text.toInt() > 12) {
+                    errorText = "Polygon cannot have more than 12 sides. Don't be ridiculous"
+                    return false
+                }
+
+            } catch (e: NumberFormatException) {
+                errorText = "Sides must be a number"
                 return false
             }
         }
@@ -708,6 +732,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 addDrawableChild(heightInput)
                 remove(radiusInput)
                 remove(rotationButon)
+                remove(sidesInput)
             }
 
             ShapeType.SPHERE -> {
@@ -724,7 +749,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 addDrawableChild(heightInput)
             }
 
-            ShapeType.TUNNEL, ShapeType.ARCH, ShapeType.HEXAGON -> {
+            ShapeType.TUNNEL, ShapeType.ARCH -> {
                 hideDimensionInputs()
                 remove(radiusInput)
                 remove(heightInput)
@@ -732,6 +757,16 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 addDrawableChild(radiusInput)
                 addDrawableChild(heightInput)
                 addDrawableChild(rotationButon)
+            }
+
+            ShapeType.POLYGON -> {
+                hideDimensionInputs()
+                remove(radiusInput)
+                remove(heightInput)
+                remove(rotationButon)
+                addDrawableChild(radiusInput)
+                addDrawableChild(heightInput)
+                addDrawableChild(sidesInput)
             }
         }
     }
@@ -755,23 +790,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     }
 
     private fun onColorChange() {
-        if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
-            return
-        }
-
-        try {
-            redInput!!.text.toInt()
-            greenInput!!.text.toInt()
-            blueInput!!.text.toInt()
-        } catch (e: NumberFormatException) {
-            return
-        }
-
-        if (redInput!!.text.toInt() !in 0..255 || greenInput!!.text.toInt() !in 0..255 || blueInput!!.text.toInt() !in 0..255) {
-            return
-        }
-
-        val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
+        val color = validateColor() ?: return
         editedShape?.color = color
         editedShape?.shouldRerender = true
     }
@@ -788,10 +807,61 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         editedShape.shouldRerender = true
     }
 
+    private fun onHeightChange() {
+        if (heightInput!!.text.isEmpty()) return
+        try {
+            heightInput!!.text.toInt()
+        } catch (e: NumberFormatException) {
+            return
+        }
+
+        // As much as I hate this, I have to do it for the type system
+        // I could use a common class with height for all shapes but that would be even worse
+        when (editedShape) {
+            is Cylinder -> {
+                editedShape.height = heightInput!!.text.toInt()
+            }
+
+            is Tunnel -> {
+                editedShape.height = heightInput!!.text.toInt()
+            }
+
+            is Arch -> {
+                editedShape.width = heightInput!!.text.toInt()
+            }
+
+            is Polygon -> {
+                editedShape.height = heightInput!!.text.toInt()
+            }
+        }
+        editedShape!!.shouldRerender = true
+    }
+
     private fun hideDimensionInputs() {
         remove(widthInput)
         remove(heightInput)
         remove(depthInput)
+    }
+
+    private fun validateColor(): Color? {
+        if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
+            return null
+        }
+
+        try {
+            redInput!!.text.toInt()
+            greenInput!!.text.toInt()
+            blueInput!!.text.toInt()
+        } catch (e: NumberFormatException) {
+            return null
+        }
+
+        if (redInput!!.text.toInt() !in 0..255 || greenInput!!.text.toInt() !in 0..255 || blueInput!!.text.toInt() !in 0..255) {
+            return null
+        }
+
+        val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
+        return color
     }
 
     override fun close() {

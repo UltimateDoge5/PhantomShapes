@@ -51,7 +51,7 @@ abstract class Shape {
         ShapeType.CYLINDER -> Icons.CYLINDER_ICON
         ShapeType.TUNNEL -> Icons.TUNNEL_ICON
         ShapeType.ARCH -> Icons.ARCH_ICON
-        ShapeType.HEXAGON -> Icons.HEXAGON_ICON
+        ShapeType.POLYGON -> Icons.HEXAGON_ICON
     }
 
     abstract fun toJsonObject(): JsonObject
@@ -60,7 +60,12 @@ abstract class Shape {
         // TODO: Make this safer - it's not safe to assume that the JsonObject will always contain the required fields
         fun fromJsonObject(json: JsonObject): Shape {
             // For some reason, the type is wrapped in quotes
-            val type = ShapeType.valueOf(json["type"].toString().replace("\"", ""))
+            val typeString = json["type"].toString().replace("\"", "")
+            if (typeString == "HEXAGON") {
+                return migrateShape(json)
+            }
+
+            val type = ShapeType.valueOf(typeString)
             val name = json["name"].toString().replace("\"", "") // Same here
 
             val color = Color(json["color"].toString().toInt())
@@ -123,11 +128,12 @@ abstract class Shape {
                     }
                 }
 
-                ShapeType.HEXAGON -> {
+                ShapeType.POLYGON -> {
                     val radius = json["radius"].toString().toInt()
                     val height = json["height"].toString().toInt()
+                    val sides = json["sides"].toString().toInt()
 
-                    Hexagon(name, color, pos, radius, height).apply {
+                    Polygon(name, color, pos, radius, height, sides).apply {
                         this.enabled = enabled
                     }
                 }
@@ -140,11 +146,39 @@ abstract class Shape {
             ShapeType.CYLINDER -> Icons.CYLINDER_ICON
             ShapeType.TUNNEL -> Icons.TUNNEL_ICON
             ShapeType.ARCH -> Icons.ARCH_ICON
-            ShapeType.HEXAGON -> Icons.HEXAGON_ICON
+            ShapeType.POLYGON -> Icons.HEXAGON_ICON
+        }
+
+        // Use this function to migrate shapes from older versions of the mod
+        private fun migrateShape(json: JsonObject): Shape {
+            when (val typeString = json["type"].toString().replace("\"", "")) {
+                "HEXAGON" -> {
+                    val name = json["name"].toString().replace("\"", "")
+                    val color = Color(json["color"].toString().toInt())
+                    val pos = Vec3d(
+                        (json["pos"] as JsonObject)["x"].toString().toDouble(),
+                        (json["pos"] as JsonObject)["y"].toString().toDouble(),
+                        (json["pos"] as JsonObject)["z"].toString().toDouble()
+                    )
+                    val enabled = json["enabled"].toString().toBoolean()
+                    val radius = json["radius"].toString().toInt()
+                    val height = json["height"].toString().toInt()
+                    val rotation = Rotation.fromString(json["rotation"].toString())
+
+                    return Polygon(name, color, pos, radius, height, 6).apply {
+                        this.rotation = rotation
+                        this.enabled = enabled
+                    }
+                }
+
+                else -> {
+                    throw IllegalArgumentException("Unknown shape type: $typeString")
+                }
+            }
         }
     }
 }
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH, HEXAGON
+    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH, POLYGON
 }
