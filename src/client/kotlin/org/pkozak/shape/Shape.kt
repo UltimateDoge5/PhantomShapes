@@ -4,8 +4,8 @@ import kotlinx.serialization.json.JsonObject
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
+import org.pkozak.Rotation
 import org.pkozak.ui.Icons
-import org.pkozak.util.SavedDataManager.Companion.toSafeDouble
 import java.awt.Color
 
 abstract class Shape {
@@ -14,12 +14,27 @@ abstract class Shape {
     abstract var name: String
     abstract val type: ShapeType
     var enabled = true
-    var rotation = 0.0
+    var rotation = Rotation(0, 0, 0) // Every shape has a rotation, even if it's not used
     var shouldRerender = true
     var shouldReorder = false
     var blockAmount = -1 // -1 means unknown - the amount wasn't calculated yet
 
     abstract fun generateBlocks(): MutableSet<Vec3d>
+
+    fun generateTransformedBlocks(): MutableSet<Vec3d> {
+        val blocks = generateBlocks()
+        val transformedBlocks = mutableSetOf<Vec3d>()
+
+        if (rotation.isZero()) {
+            return blocks
+        }
+
+        for (block in blocks) {
+            transformedBlocks.add(rotation.rotatePoint(block, pos))
+        }
+
+        return transformedBlocks
+    }
 
     abstract fun isInRange(x: Int, z: Int): Boolean
 
@@ -89,7 +104,7 @@ abstract class Shape {
                 ShapeType.TUNNEL -> {
                     val radius = json["radius"].toString().toInt()
                     val height = json["height"].toString().toInt()
-                    val rotation = toSafeDouble(json, "rotation", 0.0)
+                    val rotation = Rotation.fromString(json["rotation"].toString())
 
                     Tunnel(name, color, pos, radius, height).apply {
                         this.rotation = rotation
@@ -100,7 +115,7 @@ abstract class Shape {
                 ShapeType.ARCH -> {
                     val radius = json["radius"].toString().toInt()
                     val width = json["width"].toString().toInt()
-                    val rotation = toSafeDouble(json, "rotation", 0.0)
+                    val rotation = Rotation.fromString(json["rotation"].toString())
 
                     Arch(name, color, pos, radius, width).apply {
                         this.rotation = rotation

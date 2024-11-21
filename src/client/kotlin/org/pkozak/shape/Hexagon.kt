@@ -15,6 +15,7 @@ class Hexagon(
     override var pos: Vec3d,
     override var radius: Int,
     var height: Int
+    // TODO: Make this a polygon
 ) : RadialShape() {
     override val type = ShapeType.HEXAGON
 
@@ -26,7 +27,7 @@ class Hexagon(
         val correctedRadius = if (radius % 2 == 0) radius.toFloat() + 0.1f else radius.toFloat()
 
         for (i in 0 until 6) {
-            val angle = i * Math.PI / 3 + Math.toRadians(rotation)
+            val angle = i * Math.PI / 3
             val x = (correctedRadius * cos(angle) ).toInt()
             val z = (correctedRadius * sin(angle) ).toInt()
             hexagonVertices.add(Vec3i(x, pos.y.toInt(), z))
@@ -90,7 +91,7 @@ class Hexagon(
             put("radius", radius)
             put("height", height)
             put("enabled", enabled)
-            put("rotation", rotation)
+            put("rotation", rotation.toJsonObject())
         }
 
         return json

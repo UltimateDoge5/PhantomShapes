@@ -217,7 +217,7 @@ object PhantomShapesClient : ClientModInitializer {
                 shape.shouldReorder = false
                 shapeBlockCache[shape.name]!!
             } else {
-                var blockList = shape.generateBlocks().toList()
+                var blockList = shape.generateTransformedBlocks().toList()
 
                 // No need for this to happen while reordering, only way for this to change is a block placement/breakage
                 // Such events trigger a re-render

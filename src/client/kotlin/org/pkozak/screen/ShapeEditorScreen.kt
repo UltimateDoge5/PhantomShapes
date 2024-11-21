@@ -88,12 +88,25 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
             .dimensions(width / 2 - 100, 180, 200, 20).build()
 
+        val cancelBtn = ButtonWidget.builder(Text.literal("Cancel")) {
+            if (editedShape != null) {
+                editedShape = originalShape
+                PhantomShapesClient.cleanupBuffers()
+            }
+            close()
+        }
+            .dimensions(width / 2 - 100, 200, 200, 20).build()
+
         rotationButon = IconButton.Builder {
             editorRotation += 90
             editorRotation %= 360
             if (editedShape != null) {
-                editedShape.rotation = editorRotation
+//                editedShape.rotation.x = editorRotation.toInt()
+                editedShape.rotation.y = editorRotation.toInt()
+//                editedShape.rotation.z = editorRotation.toInt()
                 editedShape.shouldRerender = true
+                println("Rotation: ${editedShape.rotation}")
+                editedShape.rotation.printMatrix()
             }
         }
             .dimensions(width / 3 + 108 + 20 + 108, 100, 20, 20)
@@ -168,6 +181,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
         // If the shape is not null, it means we are editing an existing shape
         if (editedShape != null) {
+            originalShape = editedShape
             shapeNameInput!!.text = editedShape.name
             xCoordsInput!!.text = editedShape.pos.x.toInt().toString()
             yCoordsInput!!.text = editedShape.pos.y.toInt().toString()
@@ -242,7 +256,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                     radiusInput!!.text = (editedShape as Tunnel).radius.toString()
                     heightInput!!.text = editedShape.height.toString()
 //                    rotationInput!!.setAngle(editedShape.rotation)
-                    editorRotation = editedShape.rotation
+//                    editorRotation = editedShape.rotation
                     radiusInput!!.setChangedListener {
                         onRadiusChange()
                     }
@@ -263,7 +277,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                     radiusInput!!.text = (editedShape as Arch).radius.toString()
                     heightInput!!.text = editedShape.width.toString()
 //                    rotationInput!!.setAngle(editedShape.rotation)
-                    editorRotation = editedShape.rotation
+//                    editorRotation = editedShape.rotation
                     radiusInput!!.setChangedListener {
                         onRadiusChange()
                     }
@@ -543,7 +557,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 val radius = radiusInput!!.text.toInt()
                 val width = heightInput!!.text.toInt()
                 Arch(name, color, pos, radius, width).apply {
-                    rotation = editorRotation
+//                    rotation = editorRotation
                 }
             }
 

@@ -147,6 +147,7 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
+        super.render(context, mouseX, mouseY, delta)
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 20, Color.WHITE.rgb)
 
         for (i in rowsBgCords.indices) {
@@ -178,9 +179,6 @@ class ShapesScreen(private val parent: Screen?, internal val shapes: MutableList
                 0xff5555
             )
         }
-
-        // Draw the widgets after the background
-        super.render(context, mouseX, mouseY, delta)
     }
 
     override fun close() {
