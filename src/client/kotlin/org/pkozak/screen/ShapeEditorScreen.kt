@@ -4,6 +4,8 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
+import net.minecraft.client.gui.widget.GridWidget
+import net.minecraft.client.gui.widget.SimplePositioningWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.text.Text
@@ -15,10 +17,17 @@ import org.pkozak.PhantomShapesClient
 import org.pkozak.shape.*
 import org.pkozak.ui.IconButton
 import org.pkozak.ui.Icons
+import org.pkozak.ui.ShapePropertyInputGenerator
 import java.awt.Color
 
 class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
     Screen(Text.literal("Shape editor")) {
+    private var grid: GridWidget = GridWidget().setColumnSpacing(10).setRowSpacing(8)
+    private var adder = grid.createAdder(8)
+
+    private var shapeType: ShapeType = ShapeType.CUBE
+    private var shapePropertiesGenerator: ShapePropertyInputGenerator? = null
+
     private var shapeNameInput: TextFieldWidget? = null
     private var shapeTypeInput: ButtonWidget? = null // OptionListWidget is too complex and not worth the time
 
@@ -30,19 +39,10 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     private var greenInput: TextFieldWidget? = null
     private var blueInput: TextFieldWidget? = null
 
-    private var widthInput: TextFieldWidget? = null
-    private var heightInput: TextFieldWidget? = null
-    private var depthInput: TextFieldWidget? = null
-    private var radiusInput: TextFieldWidget? = null
-    private var sidesInput: TextFieldWidget? = null
-
     private var confirmBtn: ButtonWidget? = null
     private var centerBtn: IconButton? = null
-    private var rotationButon: IconButton? = null
 
     private var errorText = ""
-    private var shapeType: ShapeType = ShapeType.CUBE
-    private var editorRotation = 0.0
     private var originalShape = editedShape?.toJsonObject()
 
     override fun init() {
@@ -98,23 +98,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
             .dimensions(width / 2 + 5, 200, 200, 20).build()
 
-        rotationButon = IconButton.Builder {
-            editorRotation += 90
-            editorRotation %= 360
-            if (editedShape != null) {
-//                editedShape.rotation.x = editorRotation.toInt()
-                editedShape.rotation.y = editorRotation.toInt()
-//                editedShape.rotation.z = editorRotation.toInt()
-                editedShape.shouldRerender = true
-                println("Rotation: ${editedShape.rotation}")
-                editedShape.rotation.printMatrix()
-            }
-        }
-            .dimensions(width / 3 + 108 + 20 + 108, 100, 20, 20)
-            .tooltip(Tooltip.of(Text.literal("Rotate the shape around the Y axis")))
-            .icon(Icons.ROTATE)
-            .build()
-
         centerBtn = IconButton.Builder {
             xCoordsInput!!.text = client?.player?.x?.toInt().toString()
             yCoordsInput!!.text = client?.player?.y?.toInt().toString()
@@ -157,33 +140,13 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                     shapeType = ShapeType.CUBE
                 }
             }
-            onShapeTypeChange()
+
+            shapePropertiesGenerator!!.shapeType = shapeType
+            drawShapePropertiesInputs()
         }
             .dimensions(width / 3 + 108 + 20, 60, 60, 20).build()
 
-        widthInput = TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Width"))
-        widthInput!!.setPlaceholder(Text.literal("Width"))
-        widthInput!!.text = "3"
-
-        heightInput =
-            TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20 + 54, 100, 50, 20, Text.literal("Height"))
-        heightInput!!.setPlaceholder(Text.literal("Height"))
-        heightInput!!.text = "3"
-
-        depthInput =
-            TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20 + 108, 100, 50, 20, Text.literal("Depth"))
-        depthInput!!.setPlaceholder(Text.literal("Depth"))
-        depthInput!!.text = "3"
-
-        radiusInput =
-            TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20, 100, 50, 20, Text.literal("Radius"))
-        radiusInput!!.setPlaceholder(Text.literal("Radius"))
-        radiusInput!!.text = "5"
-
-        sidesInput =
-            TextFieldWidget(client!!.textRenderer, width / 3 + 108 + 20 + 108, 100, 50, 20, Text.literal("Sides"))
-        sidesInput!!.setPlaceholder(Text.literal("Sides"))
-        sidesInput!!.text = "6"
+        shapePropertiesGenerator = ShapePropertyInputGenerator(client!!.textRenderer)
 
         // If the shape is not null, it means we are editing an existing shape
         if (editedShape != null) {
@@ -224,92 +187,19 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             greenInput!!.setChangedListener { onColorChange() }
             blueInput!!.setChangedListener { onColorChange() }
 
-            when (shapeType) {
-                ShapeType.CUBE -> {
-                    widthInput!!.text = (editedShape as Cube).dimensions.x.toString()
-                    heightInput!!.text = editedShape.dimensions.y.toString()
-                    depthInput!!.text = editedShape.dimensions.z.toString()
-                }
-
-                ShapeType.SPHERE -> {
-                    radiusInput!!.text = (editedShape as Sphere).radius.toString()
-                    radiusInput!!.setChangedListener {
-                        onRadiusChange()
-                    }
-                }
-
-                ShapeType.CYLINDER -> {
-                    radiusInput!!.text = (editedShape as Cylinder).radius.toString()
-                    heightInput!!.text = editedShape.height.toString()
-                    radiusInput!!.setChangedListener {
-                        onRadiusChange()
-                    }
-                    heightInput!!.setChangedListener {
-                        onHeightChange()
-                    }
-                }
-
-                ShapeType.TUNNEL -> {
-                    radiusInput!!.text = (editedShape as Tunnel).radius.toString()
-                    heightInput!!.text = editedShape.height.toString()
-//                    rotationInput!!.setAngle(editedShape.rotation)
-//                    editorRotation = editedShape.rotation
-                    radiusInput!!.setChangedListener {
-                        onRadiusChange()
-                    }
-                    heightInput!!.setChangedListener {
-                        onHeightChange()
-                    }
-                }
-
-                ShapeType.ARCH -> {
-                    radiusInput!!.text = (editedShape as Arch).radius.toString()
-                    heightInput!!.text = editedShape.width.toString()
-//                    rotationInput!!.setAngle(editedShape.rotation)
-//                    editorRotation = editedShape.rotation
-                    radiusInput!!.setChangedListener {
-                        onRadiusChange()
-                    }
-                    heightInput!!.setChangedListener {
-                        onHeightChange()
-                    }
-                }
-
-                ShapeType.POLYGON -> {
-                    radiusInput!!.text = (editedShape as Polygon).radius.toString()
-                    heightInput!!.text = editedShape.height.toString()
-                    sidesInput!!.text = editedShape.sides.toString()
-                    radiusInput!!.setChangedListener {
-                        onRadiusChange()
-                    }
-                    heightInput!!.setChangedListener {
-                        onHeightChange()
-                    }
-                    sidesInput!!.setChangedListener {
-                        if (sidesInput!!.text.isEmpty()) return@setChangedListener
-                        try {
-                            sidesInput!!.text.toInt()
-                        } catch (e: NumberFormatException) {
-                            return@setChangedListener
-                        }
-
-
-                        editedShape.sides = sidesInput!!.text.toInt()
-                        editedShape.shouldRerender = true
-                    }
-                }
-            }
-            onShapeTypeChange()
+            shapePropertiesGenerator!!.grid.forEachChild(::remove)
+            val inputs = shapePropertiesGenerator!!.editShape(editedShape)
+            SimplePositioningWidget.setPos(inputs, width / 2, 160, this.width / 2, this.height / 2, 0.5f, 0f)
+            inputs.refreshPositions()
+            inputs.forEachChild(::addDrawableChild)
         } else {
             // Draw the inputs for the cube by default
             shapeTypeInput!!.active = true
-            addDrawableChild(widthInput)
-            addDrawableChild(depthInput)
-            addDrawableChild(heightInput)
         }
 
         addDrawableChild(confirmBtn)
         addDrawableChild(cancelBtn)
+
         addDrawableChild(centerBtn)
         addDrawableChild(shapeNameInput)
         addDrawableChild(shapeTypeInput)
@@ -319,6 +209,8 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         addDrawableChild(redInput)
         addDrawableChild(greenInput)
         addDrawableChild(blueInput)
+
+        drawShapePropertiesInputs()
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
@@ -380,119 +272,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             20
         )
 
-        when (shapeType) {
-            ShapeType.CUBE -> {
-                context.drawText(
-                    textRenderer,
-                    "Dimensions",
-                    widthInput!!.x,
-                    widthInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-            }
-
-            ShapeType.SPHERE -> {
-                context.drawText(
-                    textRenderer,
-                    "Radius",
-                    radiusInput!!.x,
-                    radiusInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-            }
-
-            ShapeType.CYLINDER -> {
-                context.drawText(
-                    textRenderer,
-                    "Radius",
-                    radiusInput!!.x,
-                    radiusInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-
-                context.drawText(
-                    textRenderer,
-                    "Height",
-                    heightInput!!.x,
-                    heightInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-            }
-
-            ShapeType.POLYGON -> {
-                context.drawText(
-                    textRenderer,
-                    "Radius",
-                    radiusInput!!.x,
-                    radiusInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-
-                context.drawText(
-                    textRenderer,
-                    "Height",
-                    heightInput!!.x,
-                    heightInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-
-                context.drawText(
-                    textRenderer,
-                    "Sides",
-                    sidesInput!!.x,
-                    sidesInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-            }
-
-            ShapeType.TUNNEL -> {
-                context.drawText(
-                    textRenderer,
-                    "Radius",
-                    radiusInput!!.x,
-                    radiusInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-
-                context.drawText(
-                    textRenderer,
-                    "Length",
-                    heightInput!!.x,
-                    heightInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-            }
-
-            ShapeType.ARCH -> {
-                context.drawText(
-                    textRenderer,
-                    "Radius",
-                    radiusInput!!.x,
-                    radiusInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-
-                context.drawText(
-                    textRenderer,
-                    "Width",
-                    heightInput!!.x,
-                    heightInput!!.y - 10,
-                    0xFFFFFF,
-                    true
-                )
-            }
-        }
-
         validateShape()
 
         if (errorText.isNotEmpty()) {
@@ -507,6 +286,14 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
 
         confirmBtn!!.active = errorText.isEmpty()
+    }
+
+    private fun drawShapePropertiesInputs() {
+        shapePropertiesGenerator!!.grid.forEachChild(::remove)
+        val inputs = shapePropertiesGenerator!!.generateInputs()
+        SimplePositioningWidget.setPos(inputs, width / 2, 160, this.width / 2, this.height / 2, 0.5f, 0f)
+        inputs.refreshPositions()
+        inputs.forEachChild(::addDrawableChild)
     }
 
     private fun drawColorBox(context: DrawContext) {
@@ -524,52 +311,37 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
         val pos = Vec3d(x, y, z)
         val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
-
-        val newShape = when (this.shapeType) {
+        when (shapeType) {
             ShapeType.CUBE -> {
-                val width = widthInput!!.text.toInt()
-                val height = heightInput!!.text.toInt()
-                val depth = depthInput!!.text.toInt()
-                val dimensions = Vec3i(width, height, depth)
-                Cube(name, color, pos, dimensions)
+                val shape = shapePropertiesGenerator!!.getShapeProperties(Cube(name, color, pos, Vec3i.ZERO))
+                parent.addShape(shape)
             }
 
             ShapeType.SPHERE -> {
-                val radius = radiusInput!!.text.toInt()
-                Sphere(name, color, pos, radius)
+                val shape = shapePropertiesGenerator!!.getShapeProperties(Sphere(name, color, pos, 1))
+                parent.addShape(shape)
             }
 
             ShapeType.CYLINDER -> {
-                val radius = radiusInput!!.text.toInt()
-                val height = heightInput!!.text.toInt()
-                Cylinder(name, color, pos, radius, height)
+                val shape = shapePropertiesGenerator!!.getShapeProperties(Cylinder(name, color, pos, 1, 1))
+                parent.addShape(shape)
             }
 
             ShapeType.TUNNEL -> {
-                val radius = radiusInput!!.text.toInt()
-                val height = heightInput!!.text.toInt()
-                Tunnel(name, color, pos, radius, height).apply {
-                    this.rotation
-                }
+                val shape = shapePropertiesGenerator!!.getShapeProperties(Tunnel(name, color, pos, 1, 1))
+                parent.addShape(shape)
             }
 
             ShapeType.ARCH -> {
-                val radius = radiusInput!!.text.toInt()
-                val width = heightInput!!.text.toInt()
-                Arch(name, color, pos, radius, width).apply {
-//                    rotation = editorRotation
-                }
+                val shape = shapePropertiesGenerator!!.getShapeProperties(Arch(name, color, pos, 1, 1))
+                parent.addShape(shape)
             }
 
             ShapeType.POLYGON -> {
-                val radius = radiusInput!!.text.toInt()
-                val height = heightInput!!.text.toInt()
-                val sides = sidesInput!!.text.toInt()
-                Polygon(name, color, pos, radius, height, sides)
+                val shape = shapePropertiesGenerator!!.getShapeProperties(Polygon(name, color, pos, 1, 1, 1))
+                parent.addShape(shape)
             }
         }
-
-        parent.addShape(newShape)
     }
 
     private fun validateShape(): Boolean {
@@ -612,163 +384,14 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             return false
         }
 
-        if (shapeType == ShapeType.CUBE) {
-            if (widthInput!!.text.isEmpty() || heightInput!!.text.isEmpty() || depthInput!!.text.isEmpty()) {
-                errorText = "Dimensions cannot be empty"
-                return false
-            }
-
-            try {
-                if (widthInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0 || depthInput!!.text.toInt() <= 0) {
-                    errorText = "Dimensions must be greater than 0"
-                    return false
-                }
-            } catch (e: NumberFormatException) {
-                errorText = "Dimensions must be numbers"
-                return false
-            }
-        }
-
-        if (shapeType == ShapeType.SPHERE) {
-            if (radiusInput!!.text.isEmpty()) {
-                errorText = "Radius cannot be empty"
-                return false
-            }
-
-            try {
-                if (radiusInput!!.text.toInt() <= 0) {
-                    errorText = "Radius must be greater than 0"
-                    return false
-                }
-            } catch (e: NumberFormatException) {
-                errorText = "Radius must be a number"
-                return false
-            }
-        }
-
-        if (shapeType == ShapeType.CYLINDER || shapeType == ShapeType.POLYGON) {
-            if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
-                errorText = "Radius and height cannot be empty"
-                return false
-            }
-
-            try {
-                if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
-                    errorText = "Radius and height must be greater than 0"
-                    return false
-                }
-            } catch (e: NumberFormatException) {
-                errorText = "Radius and height must be numbers"
-                return false
-            }
-        }
-
-        if (shapeType == ShapeType.POLYGON) {
-            if (sidesInput!!.text.isEmpty()) {
-                errorText = "Sides cannot be empty"
-                return false
-            }
-
-            try {
-                if (sidesInput!!.text.toInt() < 3) {
-                    errorText = "Polygon must have at least 3 sides"
-                    return false
-                }
-
-                if (sidesInput!!.text.toInt() > 12) {
-                    errorText = "Polygon cannot have more than 12 sides. Don't be ridiculous"
-                    return false
-                }
-
-            } catch (e: NumberFormatException) {
-                errorText = "Sides must be a number"
-                return false
-            }
-        }
-
-        if (shapeType == ShapeType.TUNNEL) {
-            if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
-                errorText = "Radius and length cannot be empty"
-                return false
-            }
-
-            try {
-                if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
-                    errorText = "Radius and length must be greater than 0"
-                    return false
-                }
-            } catch (e: NumberFormatException) {
-                errorText = "Radius and length must be numbers"
-                return false
-            }
-        }
-
-        if (shapeType == ShapeType.ARCH) {
-            if (radiusInput!!.text.isEmpty() || heightInput!!.text.isEmpty()) {
-                errorText = "Radius and width cannot be empty"
-                return false
-            }
-
-            try {
-                if (radiusInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0) {
-                    errorText = "Radius and width must be greater than 0"
-                    return false
-                }
-            } catch (e: NumberFormatException) {
-                errorText = "Radius and width must be numbers"
-                return false
-            }
+        val parametersError = shapePropertiesGenerator!!.checkForError()
+        if (parametersError != null) {
+            errorText = parametersError
+            return false
         }
 
         errorText = ""
         return true
-    }
-
-    private fun onShapeTypeChange() {
-        when (this.shapeType) {
-            ShapeType.CUBE -> {
-                addDrawableChild(widthInput)
-                addDrawableChild(depthInput)
-                addDrawableChild(heightInput)
-                remove(radiusInput)
-                remove(rotationButon)
-                remove(sidesInput)
-            }
-
-            ShapeType.SPHERE -> {
-                hideDimensionInputs()
-                addDrawableChild(radiusInput)
-                remove(rotationButon)
-            }
-
-            ShapeType.CYLINDER -> {
-                hideDimensionInputs()
-                remove(radiusInput)
-                remove(rotationButon)
-                addDrawableChild(radiusInput)
-                addDrawableChild(heightInput)
-            }
-
-            ShapeType.TUNNEL, ShapeType.ARCH -> {
-                hideDimensionInputs()
-                remove(radiusInput)
-                remove(heightInput)
-                remove(rotationButon)
-                addDrawableChild(radiusInput)
-                addDrawableChild(heightInput)
-                addDrawableChild(rotationButon)
-            }
-
-            ShapeType.POLYGON -> {
-                hideDimensionInputs()
-                remove(radiusInput)
-                remove(heightInput)
-                remove(rotationButon)
-                addDrawableChild(radiusInput)
-                addDrawableChild(heightInput)
-                addDrawableChild(sidesInput)
-            }
-        }
     }
 
     private fun onCoordinateChange() {
@@ -784,7 +407,8 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             return
         }
 
-        val vec = Vec3d(xCoordsInput!!.text.toDouble(), yCoordsInput!!.text.toDouble(), zCoordsInput!!.text.toDouble())
+        val vec =
+            Vec3d(xCoordsInput!!.text.toDouble(), yCoordsInput!!.text.toDouble(), zCoordsInput!!.text.toDouble())
         editedShape?.pos = vec
         editedShape?.shouldRerender = true
     }
@@ -793,54 +417,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         val color = validateColor() ?: return
         editedShape?.color = color
         editedShape?.shouldRerender = true
-    }
-
-    private fun onRadiusChange() {
-        if (radiusInput!!.text.isEmpty()) return
-        try {
-            radiusInput!!.text.toInt()
-        } catch (e: NumberFormatException) {
-            return
-        }
-
-        (editedShape as RadialShape).radius = radiusInput!!.text.toInt()
-        editedShape.shouldRerender = true
-    }
-
-    private fun onHeightChange() {
-        if (heightInput!!.text.isEmpty()) return
-        try {
-            heightInput!!.text.toInt()
-        } catch (e: NumberFormatException) {
-            return
-        }
-
-        // As much as I hate this, I have to do it for the type system
-        // I could use a common class with height for all shapes but that would be even worse
-        when (editedShape) {
-            is Cylinder -> {
-                editedShape.height = heightInput!!.text.toInt()
-            }
-
-            is Tunnel -> {
-                editedShape.height = heightInput!!.text.toInt()
-            }
-
-            is Arch -> {
-                editedShape.width = heightInput!!.text.toInt()
-            }
-
-            is Polygon -> {
-                editedShape.height = heightInput!!.text.toInt()
-            }
-        }
-        editedShape!!.shouldRerender = true
-    }
-
-    private fun hideDimensionInputs() {
-        remove(widthInput)
-        remove(heightInput)
-        remove(depthInput)
     }
 
     private fun validateColor(): Color? {
