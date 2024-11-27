@@ -12,8 +12,6 @@ import net.minecraft.util.math.ColorHelper
 import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.PhantomShapesClient
-import org.pkozak.shape.Shape
-import org.pkozak.shape.ShapeType
 import org.pkozak.shape.*
 import org.pkozak.ui.IconButton
 import org.pkozak.ui.Icons
@@ -210,6 +208,10 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                     widthInput!!.text = (editedShape as Cube).dimensions.x.toString()
                     heightInput!!.text = editedShape.dimensions.y.toString()
                     depthInput!!.text = editedShape.dimensions.z.toString()
+
+                    widthInput!!.setChangedListener { onDimensionChange() }
+                    heightInput!!.setChangedListener { onDimensionChange() }
+                    depthInput!!.setChangedListener { onDimensionChange() }
                 }
 
                 ShapeType.SPHERE -> {
@@ -699,6 +701,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             ShapeType.SPHERE -> {
                 hideDimensionInputs()
                 addDrawableChild(radiusInput)
+                remove(heightInput)
                 remove(rotationButon)
             }
 
@@ -738,6 +741,28 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         val vec = Vec3d(xCoordsInput!!.text.toDouble(), yCoordsInput!!.text.toDouble(), zCoordsInput!!.text.toDouble())
         editedShape?.pos = vec
         editedShape?.shouldRerender = true
+    }
+
+    private fun onDimensionChange() {
+        if (widthInput!!.text.isEmpty() || heightInput!!.text.isEmpty() || depthInput!!.text.isEmpty()) {
+            return
+        }
+
+        try {
+            widthInput!!.text.toInt()
+            heightInput!!.text.toInt()
+            depthInput!!.text.toInt()
+        } catch (e: NumberFormatException) {
+            return
+        }
+
+        if (widthInput!!.text.toInt() <= 0 || heightInput!!.text.toInt() <= 0 || depthInput!!.text.toInt() <= 0) {
+            return
+        }
+
+        val dimensions = Vec3i(widthInput!!.text.toInt(), heightInput!!.text.toInt(), depthInput!!.text.toInt())
+        (editedShape as Cube).dimensions = dimensions
+        editedShape.shouldRerender = true
     }
 
     private fun onColorChange() {

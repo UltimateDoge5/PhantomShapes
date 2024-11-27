@@ -12,12 +12,12 @@ class Sphere(
     override var name: String, override var color: Color, override var pos: Vec3d, override var radius: Int
 ) : RadialShape() {
     override val type = ShapeType.SPHERE
-    private val positions = mutableSetOf<Vec3d>()
 
     override fun generateBlocks(): MutableSet<Vec3d> {
         val invRadius: Double = 1 / (radius.toDouble() + 0.5)
         val ceilRadius = ceil(radius + 0.5).toInt()
 
+        val positions = mutableSetOf<Vec3d>()
         var nextXn = 0.0
         forX@ for (x in 0..ceilRadius) {
             val xn = nextXn

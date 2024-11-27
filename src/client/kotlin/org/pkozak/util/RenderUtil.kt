@@ -1,14 +1,11 @@
 package org.pkozak.util
 
-import com.mojang.blaze3d.systems.VertexSorter
 import net.minecraft.client.gl.GlUsage
 import net.minecraft.client.gl.VertexBuffer
 import net.minecraft.client.render.BufferBuilder
-import net.minecraft.client.render.BuiltBuffer
 import net.minecraft.client.render.Tessellator
 import net.minecraft.client.render.VertexFormat.DrawMode
 import net.minecraft.client.render.VertexFormats
-import net.minecraft.client.util.BufferAllocator
 import net.minecraft.util.math.Vec3d
 import org.joml.Matrix4f
 import org.pkozak.Options
@@ -75,6 +72,7 @@ class RenderUtil {
             } else {
                 bufferCache[shape.name]!!
             }
+
             vertexBuffer.bind()
             vertexBuffer.upload(buffer.end())
             VertexBuffer.unbind()

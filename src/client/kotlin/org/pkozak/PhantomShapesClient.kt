@@ -208,6 +208,7 @@ object PhantomShapesClient : ClientModInitializer {
         matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.yaw + 180.0f))
         matrixStack.translate(transformedPosition.x, transformedPosition.y, transformedPosition.z)
 
+        // If the shape is not in the cache or a rerender is requested, generate the blocks
         if (shape.shouldRerender || shape.shouldReorder) {
             val positionMatrix = context.matrixStack()!!.peek().positionMatrix
             val tessellator = Tessellator.getInstance()
@@ -232,6 +233,7 @@ object PhantomShapesClient : ClientModInitializer {
                 shapeBlockCache[shape.name] = blockList
                 blockList
             }.sortedBy { it.squaredDistanceTo(camera.pos) } // Sort the blocks by distance to the camera
+
 
             shape.blockAmount = blocks.size
 
@@ -305,7 +307,6 @@ object PhantomShapesClient : ClientModInitializer {
 
     fun rerenderAllShapes() {
         if (client.world == null) return
-        logger.info("camera position: ${client.cameraEntity?.pos}")
         for (shape in shapes) {
             shape.shouldRerender = true
         }

@@ -14,7 +14,6 @@ class Cube(
     override fun generateBlocks(): MutableSet<Vec3d> {
         val positions = mutableSetOf<Vec3d>()
 
-
         // Render the outline of the cube
         for (x in 0 until dimensions.x) {
             for (y in 0 until dimensions.y) {
