@@ -32,6 +32,7 @@ class SettingsScreen {
                                 .option(options.drawModeOption!!)
                                 .option(options.fillOpacityOption!!)
                                 .option(options.outlineOpacityOption!!)
+                                .option(options.blockSizeOption!!)
                                 .build()
                         )
                         .build()

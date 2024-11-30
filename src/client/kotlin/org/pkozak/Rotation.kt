@@ -81,10 +81,6 @@ class Rotation() {
         return jsonObject
     }
 
-    fun printMatrix() {
-        println(rotationMatrix.toString())
-    }
-
     override fun toString(): String {
         return "Rotation{$x, $y, $z}"
     }

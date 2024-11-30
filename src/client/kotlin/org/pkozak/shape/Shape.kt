@@ -49,7 +49,6 @@ abstract class Shape {
         ShapeType.CUBE -> Icons.CUBE_ICON
         ShapeType.SPHERE -> Icons.SPHERE_ICON
         ShapeType.CYLINDER -> Icons.CYLINDER_ICON
-        ShapeType.TUNNEL -> Icons.TUNNEL_ICON
         ShapeType.ARCH -> Icons.ARCH_ICON
         ShapeType.POLYGON -> Icons.HEXAGON_ICON
     }
@@ -61,11 +60,14 @@ abstract class Shape {
         fun fromJsonObject(json: JsonObject): Shape {
             // For some reason, the type is wrapped in quotes
             val typeString = json["type"].toString().replace("\"", "")
-            if (typeString == "HEXAGON") {
+
+            // If the type is unknown, try to migrate an older shape
+            val type = try {
+                ShapeType.valueOf(typeString)
+            } catch (e: IllegalArgumentException) {
                 return migrateShape(json)
             }
 
-            val type = ShapeType.valueOf(typeString)
             val name = json["name"].toString().replace("\"", "") // Same here
 
             val color = Color(json["color"].toString().toInt())
@@ -106,17 +108,6 @@ abstract class Shape {
                     }
                 }
 
-                ShapeType.TUNNEL -> {
-                    val radius = json["radius"].toString().toInt()
-                    val height = json["height"].toString().toInt()
-                    val rotation = Rotation.fromString(json["rotation"].toString())
-
-                    Tunnel(name, color, pos, radius, height).apply {
-                        this.rotation = rotation
-                        this.enabled = enabled
-                    }
-                }
-
                 ShapeType.ARCH -> {
                     val radius = json["radius"].toString().toInt()
                     val width = json["width"].toString().toInt()
@@ -144,7 +135,6 @@ abstract class Shape {
             ShapeType.CUBE -> Icons.CUBE_ICON
             ShapeType.SPHERE -> Icons.SPHERE_ICON
             ShapeType.CYLINDER -> Icons.CYLINDER_ICON
-            ShapeType.TUNNEL -> Icons.TUNNEL_ICON
             ShapeType.ARCH -> Icons.ARCH_ICON
             ShapeType.POLYGON -> Icons.HEXAGON_ICON
         }
@@ -171,6 +161,26 @@ abstract class Shape {
                     }
                 }
 
+                "TUNNEL" -> {
+                    val name = json["name"].toString().replace("\"", "")
+                    val color = Color(json["color"].toString().toInt())
+                    val pos = Vec3d(
+                        (json["pos"] as JsonObject)["x"].toString().toDouble(),
+                        (json["pos"] as JsonObject)["y"].toString().toDouble(),
+                        (json["pos"] as JsonObject)["z"].toString().toDouble()
+                    )
+                    val enabled = json["enabled"].toString().toBoolean()
+                    val radius = json["radius"].toString().toInt()
+                    val height = json["height"].toString().toInt()
+                    val rotation = Rotation.fromString(json["rotation"].toString())
+                    rotation.x = 90 // The tunnel is a cylinder rotated 90 degrees, that's why im removing it in 2.0
+
+                    return Cylinder(name, color, pos, radius, height).apply {
+                        this.rotation = rotation
+                        this.enabled = enabled
+                    }
+                }
+
                 else -> {
                     throw IllegalArgumentException("Unknown shape type: $typeString")
                 }
@@ -180,5 +190,5 @@ abstract class Shape {
 }
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, TUNNEL, ARCH, POLYGON
+    CUBE, SPHERE, CYLINDER, ARCH, POLYGON
 }

@@ -34,6 +34,9 @@ class Options {
     var outlineOpacity = 0.7f
     var outlineOpacityOption: Option<Float>? = null
 
+    // Controls the size of the phantom blocks
+    var blockSize = 1f
+    var blockSizeOption: Option<Float>? = null
 
     // Try loading options from file, upon not finding a value, use the default as a fallback
     init {
@@ -49,6 +52,7 @@ class Options {
             }
             fillOpacity = toSafeFloat(json, "fillOpacity", fillOpacity)
             outlineOpacity = toSafeFloat(json, "outlineOpacity", outlineOpacity)
+            blockSize = toSafeFloat(json, "blockSize", blockSize)
         }
 
         renderShapesOption = Option.createBuilder<Boolean>() // boolean is the type of option we'll be making
@@ -84,6 +88,14 @@ class Options {
                         if (it == 0.0f) Text.of("Hidden") else Text.of((it * 100).toInt().toString() + "%")
                     }
                 }.build()
+
+        blockSizeOption = Option.createBuilder<Float>().name(Text.translatable("options.phantomshapes.block_size"))
+            .description(OptionDescription.of(Text.translatable("options.phantomshapes.block_size.tooltip")))
+            .binding(0.7f, { blockSize }, { blockSize = it }).controller { opt ->
+                FloatSliderControllerBuilder.create(opt).range(0.1f, 1.0f).step(0.1f).formatValue {
+                    Text.of((it * 100).toInt().toString() + "% of a block")
+                }
+            }.build()
     }
 
     fun saveToFile() {
@@ -93,6 +105,7 @@ class Options {
             put("drawMode", drawMode.toString().lowercase())
             put("fillOpacity", fillOpacity)
             put("outlineOpacity", outlineOpacity)
+            put("blockSize", blockSize)
         }
         SavedDataManager.writeToFile("phantomshapes.json", json.toString(), true)
     }

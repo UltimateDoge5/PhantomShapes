@@ -118,17 +118,12 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                 }
 
                 "cylinder" -> {
-                    shapeTypeInput!!.message = Text.literal("Tunnel")
-                    shapeType = ShapeType.TUNNEL
-                }
-
-                "tunnel" -> {
                     shapeTypeInput!!.message = Text.literal("Arch")
                     shapeType = ShapeType.ARCH
                 }
 
                 "arch" -> {
-                    shapeTypeInput!!.message = Text.literal("Hexagon")
+                    shapeTypeInput!!.message = Text.literal("Polygon")
                     shapeType = ShapeType.POLYGON
                 }
 
@@ -330,11 +325,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
             ShapeType.CYLINDER -> {
                 val shape = shapePropertiesGenerator!!.getShapeProperties(Cylinder(name, color, pos, 1, 1))
-                parent.addShape(shape)
-            }
-
-            ShapeType.TUNNEL -> {
-                val shape = shapePropertiesGenerator!!.getShapeProperties(Tunnel(name, color, pos, 1, 1))
                 parent.addShape(shape)
             }
 

@@ -51,10 +51,6 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
                 elements.add(ShapePropertyInput(textRenderer, "Radius", "5"))
             }
 
-            ShapeType.TUNNEL -> {
-                // TODO: Migrate tunnel
-            }
-
             ShapeType.ARCH -> {
                 elements.add(ShapePropertyInput(textRenderer, "Radius", "6"))
                 elements.add(ShapePropertyInput(textRenderer, "Height", "5"))
@@ -183,7 +179,6 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
                 addRotationListeners(editedShape)
             }
 
-            ShapeType.TUNNEL -> TODO()
             ShapeType.ARCH -> {
                 elements[0].setValue((editedShape as Arch).radius.toString(), fun(radius: String) {
                     editedShape.radius = radius.toInt()
@@ -246,7 +241,6 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
                 return shape
             }
 
-            ShapeType.TUNNEL -> TODO()
             ShapeType.ARCH -> {
                 val radius = elements[0].getValue().toInt()
                 val width = elements[1].getValue().toInt()
