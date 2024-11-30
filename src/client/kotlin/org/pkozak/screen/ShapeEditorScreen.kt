@@ -16,14 +16,14 @@ import org.pkozak.PhantomShapesClient
 import org.pkozak.shape.*
 import org.pkozak.ui.IconButton
 import org.pkozak.ui.Icons
-import org.pkozak.ui.ShapePropertyInputGenerator
+import org.pkozak.ui.input.ShapeInputGenerator
 import java.awt.Color
 
 class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
     Screen(Text.literal("Shape editor")) {
 
     private var shapeType: ShapeType = ShapeType.CUBE
-    private var shapePropertiesGenerator: ShapePropertyInputGenerator? = null
+    private var shapePropertiesGenerator: ShapeInputGenerator? = null
 
     private var shapeNameInput: TextFieldWidget? = null
     private var shapeTypeInput: ButtonWidget? = null // OptionListWidget is too complex and not worth the time
@@ -54,30 +54,35 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             TextFieldWidget(client!!.textRenderer, width / 3 - 25 - 54, 100, 50, 20, Text.literal("X coordinate"))
         xCoordsInput!!.setPlaceholder(Text.literal("X"))
         xCoordsInput!!.text = client?.player?.x?.toInt().toString()
+        xCoordsInput!!.tooltip = Tooltip.of(Text.literal("X coordinate"))
 
         yCoordsInput =
             TextFieldWidget(client!!.textRenderer, width / 3 - 25, 100, 50, 20, Text.literal("Y coordinate"))
         yCoordsInput!!.setPlaceholder(Text.literal("Y"))
         yCoordsInput!!.text = client?.player?.y?.toInt().toString()
+        yCoordsInput!!.tooltip = Tooltip.of(Text.literal("Y coordinate"))
 
         zCoordsInput =
             TextFieldWidget(client!!.textRenderer, width / 3 - 25 + 54, 100, 50, 20, Text.literal("Z coordinate"))
         zCoordsInput!!.setPlaceholder(Text.literal("Z"))
         zCoordsInput!!.text = client?.player?.z?.toInt().toString()
+        zCoordsInput!!.tooltip = Tooltip.of(Text.literal("Z coordinate"))
 
         // Color inputs
         redInput = TextFieldWidget(client!!.textRenderer, width / 3 - 25 - 54, 140, 50, 20, Text.literal("Red"))
         redInput!!.setPlaceholder(Text.literal("Red"))
         redInput!!.text = "0"
+        redInput!!.tooltip = Tooltip.of(Text.literal("Red"))
 
         greenInput = TextFieldWidget(client!!.textRenderer, width / 3 - 25, 140, 50, 20, Text.literal("Green"))
         greenInput!!.setPlaceholder(Text.literal("Green"))
         greenInput!!.text = "255"
+        greenInput!!.tooltip = Tooltip.of(Text.literal("Green"))
 
         blueInput = TextFieldWidget(client!!.textRenderer, width / 3 - 25 + 54, 140, 50, 20, Text.literal("Blue"))
         blueInput!!.setPlaceholder(Text.literal("Blue"))
         blueInput!!.text = "255"
-
+        blueInput!!.tooltip = Tooltip.of(Text.literal("Blue"))
 
         confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) {
             if (editedShape == null) createShape()
@@ -138,7 +143,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         }
             .dimensions(width / 3 + 108 + 20, 60, 60, 20).build()
 
-        shapePropertiesGenerator = ShapePropertyInputGenerator(client!!.textRenderer)
+        shapePropertiesGenerator = ShapeInputGenerator(client!!.textRenderer)
 
         // If the shape is not null, it means we are editing an existing shape
         if (editedShape != null) {

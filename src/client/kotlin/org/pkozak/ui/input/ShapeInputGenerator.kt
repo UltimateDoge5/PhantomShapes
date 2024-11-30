@@ -1,15 +1,9 @@
-package org.pkozak.ui
+package org.pkozak.ui.input
 
 import net.minecraft.client.font.TextRenderer
-import net.minecraft.client.gui.widget.ClickableWidget
 import net.minecraft.client.gui.widget.GridWidget
-import net.minecraft.client.gui.widget.TextFieldWidget
-import net.minecraft.client.gui.widget.Widget
-import net.minecraft.text.Text
-import net.minecraft.util.math.Vec3d
 import net.minecraft.util.math.Vec3i
 import org.pkozak.shape.*
-import java.util.function.Consumer
 
 /**
  * This widget is responsible for generating the input fields for the shape properties.
@@ -19,11 +13,11 @@ import java.util.function.Consumer
  * Rotation is technically not unique, but not shapes can practically benefit from it, so sometimes its omitted.
  * @param textRenderer Minecraft text renderer, retrieved from the context or the client
  */
-class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
+class ShapeInputGenerator(private val textRenderer: TextRenderer) {
     var shapeType: ShapeType = ShapeType.CUBE
 
     // Store all the elements in a list so we can return them for the required overload
-    private val elements = mutableListOf<ShapePropertyInput>()
+    private val elements = mutableListOf<ShapeInput>()
 
     var grid: GridWidget = GridWidget().setColumnSpacing(4).setRowSpacing(20)
     private var adder = grid.createAdder(3)
@@ -36,9 +30,9 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
 
         when (shapeType) {
             ShapeType.CUBE -> {
-                elements.add(ShapePropertyInput(textRenderer, "Width", "3"))
-                elements.add(ShapePropertyInput(textRenderer, "Height", "3"))
-                elements.add(ShapePropertyInput(textRenderer, "Depth", "3"))
+                elements.add(ShapePropertyInput(textRenderer, "Width", "3").apply { label = "Dimensions" })
+                elements.add(ShapePropertyInput(textRenderer, "Height", "3").apply { label = null })
+                elements.add(ShapePropertyInput(textRenderer, "Depth", "3").apply { label = null })
             }
 
             ShapeType.CYLINDER -> {
@@ -96,16 +90,18 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
     fun getLabels(): List<Label> {
         val labels = mutableListOf<Label>()
         for (element in elements) {
-            labels.add(element.getLabel())
+            val label = element.getLabel()
+            if (label != null) {
+                labels.add(label)
+            }
         }
         return labels
     }
 
     private fun addRotationInputs() {
-        val constraint = ShapePropertyInput.Constraint(0, 270)
-        elements.add(ShapePropertyInput(textRenderer, "Rotation X", "0", constraint))
-        elements.add(ShapePropertyInput(textRenderer, "Rotation Y", "0", constraint))
-        elements.add(ShapePropertyInput(textRenderer, "Rotation Z", "0", constraint))
+        elements.add(ShapeRotationInput(ShapeRotationInput.Axis.X, true)) // Show the "Rotation" label only once and at the beginning
+        elements.add(ShapeRotationInput(ShapeRotationInput.Axis.Y))
+        elements.add(ShapeRotationInput(ShapeRotationInput.Axis.Z))
     }
 
     private fun addRotationListeners(editedShape: Shape) {
@@ -260,90 +256,4 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
             }
         }
     }
-
-    private class ShapePropertyInput(textRenderer: TextRenderer, private val label: String, value: String) :
-        Widget {
-
-        constructor(textRenderer: TextRenderer, label: String, value: String, constraints: Constraint) : this(
-            textRenderer,
-            label,
-            value
-        ) {
-            this.constraints = constraints
-        }
-
-        private val input = TextFieldWidget(textRenderer, 50, 20, Text.of(value))
-        private var constraints = Constraint(1, null)
-
-        fun checkForError(): String? {
-            if (input.text.isEmpty()) {
-                return "Shape ${label.lowercase()} cannot be empty."
-            }
-            val value = input.text.toIntOrNull() ?: return "Shape ${label.lowercase()} must be a number."
-
-            if (constraints.min > value) {
-                return "Shape ${label.lowercase()} must be greater than or equal ${constraints.min}."
-            }
-
-            if (constraints.max != null && constraints.max!! < value) {
-                return "Shape ${label.lowercase()} must be less than or equal ${constraints.max}."
-            }
-            return null
-        }
-
-        fun getLabel(): Label {
-            return Label(label, input.x, input.y - 10)
-        }
-
-        fun getValue(): String {
-            return input.text
-        }
-
-        /**
-         * @param listener The listener that will be called when the value changes and **is valid**
-         */
-        fun setValue(value: String, listener: Consumer<String>) {
-            input.text = value
-            input.setChangedListener {
-                if (checkForError() !== null) return@setChangedListener // Check for error first
-                listener.accept(input.text)
-            }
-        }
-
-        override fun setX(x: Int) {
-            input.x = x
-        }
-
-        override fun setY(y: Int) {
-            input.y = y
-        }
-
-        override fun getX(): Int {
-            return input.x
-        }
-
-        override fun getY(): Int {
-            return input.y
-        }
-
-        override fun getWidth(): Int {
-            return 50
-        }
-
-        override fun getHeight(): Int {
-            return 20
-        }
-
-        /**
-         * @param min The minimum value for the input (inclusive)
-         * @param max The maximum value for the input (inclusive). If null, there is no maximum.
-         */
-        data class Constraint(val min: Int, val max: Int?)
-
-        override fun forEachChild(consumer: Consumer<ClickableWidget>) {
-            consumer.accept(input)
-        }
-    }
-
-    data class Label(val text: String, val x: Int, val y: Int)
 }
