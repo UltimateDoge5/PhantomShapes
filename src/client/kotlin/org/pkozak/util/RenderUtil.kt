@@ -72,6 +72,7 @@ class RenderUtil {
             } else {
                 bufferCache[shape.name]!!
             }
+
             vertexBuffer.bind()
             vertexBuffer.upload(buffer.end())
             VertexBuffer.unbind()

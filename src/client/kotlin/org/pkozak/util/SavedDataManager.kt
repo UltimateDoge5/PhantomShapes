@@ -135,6 +135,15 @@ class SavedDataManager {
             }
         }
 
+        fun toSafeFloat(obj: JsonObject, key: String, fallback: Float): Float {
+            return try {
+                obj[key].toString().toFloat()
+            } catch (e: Exception) {
+                logger.warn("Failed to parse float from key: $key. Using fallback value")
+                fallback
+            }
+        }
+
         fun toSafeBoolean(obj: JsonObject, key: String, fallback: Boolean): Boolean {
             return try {
                 obj[key].toString().toBoolean()
