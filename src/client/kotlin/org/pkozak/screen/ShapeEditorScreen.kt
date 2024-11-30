@@ -4,7 +4,6 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.ButtonWidget
-import net.minecraft.client.gui.widget.GridWidget
 import net.minecraft.client.gui.widget.SimplePositioningWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.client.render.RenderLayer
@@ -22,8 +21,6 @@ import java.awt.Color
 
 class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
     Screen(Text.literal("Shape editor")) {
-    private var grid: GridWidget = GridWidget().setColumnSpacing(10).setRowSpacing(8)
-    private var adder = grid.createAdder(8)
 
     private var shapeType: ShapeType = ShapeType.CUBE
     private var shapePropertiesGenerator: ShapePropertyInputGenerator? = null
@@ -189,12 +186,13 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
             shapePropertiesGenerator!!.grid.forEachChild(::remove)
             val inputs = shapePropertiesGenerator!!.editShape(editedShape)
-            SimplePositioningWidget.setPos(inputs, width / 2, 160, this.width / 2, this.height / 2, 0.5f, 0f)
+            SimplePositioningWidget.setPos(inputs, width / 3 + 108 + 20, 100, this.width / 2, this.height / 2, 0f, 0f)
             inputs.refreshPositions()
             inputs.forEachChild(::addDrawableChild)
         } else {
             // Draw the inputs for the cube by default
             shapeTypeInput!!.active = true
+            drawShapePropertiesInputs()
         }
 
         addDrawableChild(confirmBtn)
@@ -209,8 +207,6 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         addDrawableChild(redInput)
         addDrawableChild(greenInput)
         addDrawableChild(blueInput)
-
-        drawShapePropertiesInputs()
     }
 
     override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
@@ -275,23 +271,33 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         validateShape()
 
         if (errorText.isNotEmpty()) {
-            context.drawText(
+            context.drawCenteredTextWithShadow(
                 textRenderer,
                 errorText,
-                width / 3 + 108 + 20,
-                152,
-                Colors.LIGHT_RED,
-                true
+                width / 2,
+                180,
+                Colors.LIGHT_RED
             )
         }
 
         confirmBtn!!.active = errorText.isEmpty()
+        val labels = shapePropertiesGenerator!!.getLabels()
+        for (label in labels) {
+            context.drawText(
+                textRenderer,
+                label.text,
+                label.x,
+                label.y,
+                0xFFFFFF,
+                true
+            )
+        }
     }
 
     private fun drawShapePropertiesInputs() {
         shapePropertiesGenerator!!.grid.forEachChild(::remove)
         val inputs = shapePropertiesGenerator!!.generateInputs()
-        SimplePositioningWidget.setPos(inputs, width / 2, 160, this.width / 2, this.height / 2, 0.5f, 0f)
+        SimplePositioningWidget.setPos(inputs, width / 3 + 108 + 20, 100, width / 2, height / 2, 0f, 0f)
         inputs.refreshPositions()
         inputs.forEachChild(::addDrawableChild)
     }

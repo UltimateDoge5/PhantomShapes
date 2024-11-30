@@ -1,8 +1,6 @@
 package org.pkozak.ui
 
 import net.minecraft.client.font.TextRenderer
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.gui.Drawable
 import net.minecraft.client.gui.widget.ClickableWidget
 import net.minecraft.client.gui.widget.GridWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
@@ -23,17 +21,17 @@ import java.util.function.Consumer
  */
 class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
     var shapeType: ShapeType = ShapeType.CUBE
-    private var editedShape: Shape? = null
 
     // Store all the elements in a list so we can return them for the required overload
     private val elements = mutableListOf<ShapePropertyInput>()
 
-    var grid: GridWidget = GridWidget().setColumnSpacing(10).setRowSpacing(6)
-
-    private val adder = grid.createAdder(3)
+    var grid: GridWidget = GridWidget().setColumnSpacing(4).setRowSpacing(20)
+    private var adder = grid.createAdder(3)
 
     fun generateInputs(): GridWidget {
-        grid = GridWidget().setColumnSpacing(10).setRowSpacing(6) // Reset the grid
+        grid = GridWidget().setColumnSpacing(4).setRowSpacing(20) // Reset the grid
+        adder = grid.createAdder(3) // Reset the adder
+
         elements.clear()
 
         when (shapeType) {
@@ -64,15 +62,47 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
             }
 
             ShapeType.POLYGON -> {
-                elements.add(ShapePropertyInput(textRenderer, "Radius", "5"))
+                elements.add(ShapePropertyInput(textRenderer, "Radius", "5", ShapePropertyInput.Constraint(3, null)))
                 elements.add(ShapePropertyInput(textRenderer, "Height", "1"))
                 elements.add(ShapePropertyInput(textRenderer, "Sides", "6", ShapePropertyInput.Constraint(3, 12)))
                 addRotationInputs()
             }
         }
 
-        elements.forEach { adder.add(it) }
+        // If there are rotation inputs, make sure they are in the next row, by making the last element of the first row take up more columns
+        // We have 2 possible edge cases
+        when (elements.size) {
+            4 -> {
+                adder.add(elements[0], 3)
+                adder.add(elements[1])
+                adder.add(elements[2])
+                adder.add(elements[3])
+            }
+
+            5 -> {
+                adder.add(elements[0])
+                adder.add(elements[1], 2)
+                adder.add(elements[2])
+                adder.add(elements[3])
+                adder.add(elements[4])
+            }
+
+            else -> {
+                for (element in elements) {
+                    adder.add(element)
+                }
+            }
+        }
+
         return grid
+    }
+
+    fun getLabels(): List<Label> {
+        val labels = mutableListOf<Label>()
+        for (element in elements) {
+            labels.add(element.getLabel())
+        }
+        return labels
     }
 
     private fun addRotationInputs() {
@@ -80,6 +110,22 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
         elements.add(ShapePropertyInput(textRenderer, "Rotation X", "0", constraint))
         elements.add(ShapePropertyInput(textRenderer, "Rotation Y", "0", constraint))
         elements.add(ShapePropertyInput(textRenderer, "Rotation Z", "0", constraint))
+    }
+
+    private fun addRotationListeners(editedShape: Shape) {
+        val inputs = elements.slice(elements.size - 3 until elements.size)
+        inputs[0].setValue(editedShape.rotation.x.toString(), fun(rotationX: String) {
+            editedShape.rotation.x = rotationX.toInt()
+            editedShape.shouldRerender = true
+        })
+        inputs[1].setValue(editedShape.rotation.y.toString(), fun(rotationY: String) {
+            editedShape.rotation.y = rotationY.toInt()
+            editedShape.shouldRerender = true
+        })
+        inputs[2].setValue(editedShape.rotation.z.toString(), fun(rotationZ: String) {
+            editedShape.rotation.z = rotationZ.toInt()
+            editedShape.shouldRerender = true
+        })
     }
 
     fun checkForError(): String? {
@@ -101,13 +147,14 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
         when (shapeType) {
             ShapeType.CUBE -> {
                 val listener = fun(_: String) {
+                    // We still need to check for errors, because the listener groups all the inputs together
                     if (elements.slice(0..2).any { it.checkForError() !== null }) return
-                    val vec = Vec3d(
-                        elements[0].getValue().toDouble(),
-                        elements[1].getValue().toDouble(),
-                        elements[2].getValue().toDouble()
+                    val vec = Vec3i(
+                        elements[0].getValue().toInt(),
+                        elements[1].getValue().toInt(),
+                        elements[2].getValue().toInt()
                     )
-                    editedShape.pos = vec
+                    (editedShape as Cube).dimensions = vec
                     editedShape.shouldRerender = true
                 }
 
@@ -118,51 +165,54 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
 
             ShapeType.SPHERE -> {
                 elements[0].setValue((editedShape as Sphere).radius.toString(), fun(radius: String) {
-                    if (elements[0].checkForError() !== null) return
                     editedShape.radius = radius.toInt()
+                    editedShape.shouldRerender = true
                 })
             }
 
             ShapeType.CYLINDER -> {
                 elements[0].setValue((editedShape as Cylinder).radius.toString(), fun(radius: String) {
-                    if (elements[0].checkForError() !== null) return
                     editedShape.radius = radius.toInt()
+                    editedShape.shouldRerender = true
                 })
 
                 elements[1].setValue(editedShape.height.toString(), fun(height: String) {
-                    if (elements[1].checkForError() !== null) return
                     editedShape.height = height.toInt()
+                    editedShape.shouldRerender = true
                 })
+                addRotationListeners(editedShape)
             }
 
             ShapeType.TUNNEL -> TODO()
             ShapeType.ARCH -> {
                 elements[0].setValue((editedShape as Arch).radius.toString(), fun(radius: String) {
-                    if (elements[0].checkForError() !== null) return
                     editedShape.radius = radius.toInt()
+                    editedShape.shouldRerender = true
                 })
 
                 elements[1].setValue(editedShape.width.toString(), fun(width: String) {
-                    if (elements[1].checkForError() !== null) return
                     editedShape.width = width.toInt()
+                    editedShape.shouldRerender = true
                 })
+                addRotationListeners(editedShape)
             }
 
             ShapeType.POLYGON -> {
                 elements[0].setValue((editedShape as Polygon).radius.toString(), fun(radius: String) {
-                    if (elements[0].checkForError() !== null) return
                     editedShape.radius = radius.toInt()
+                    editedShape.shouldRerender = true
                 })
 
                 elements[1].setValue(editedShape.height.toString(), fun(height: String) {
-                    if (elements[1].checkForError() !== null) return
                     editedShape.height = height.toInt()
+                    editedShape.shouldRerender = true
                 })
 
                 elements[2].setValue(editedShape.sides.toString(), fun(sides: String) {
-                    if (elements[2].checkForError() !== null) return
                     editedShape.sides = sides.toInt()
+                    editedShape.shouldRerender = true
                 })
+                addRotationListeners(editedShape)
             }
         }
 
@@ -217,10 +267,8 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
         }
     }
 
-    private class ShapePropertyInput(private val textRenderer: TextRenderer, private val label: String, value: String) :
-        Widget, Drawable {
-        private var x = 0
-        private var y = 0
+    private class ShapePropertyInput(textRenderer: TextRenderer, private val label: String, value: String) :
+        Widget {
 
         constructor(textRenderer: TextRenderer, label: String, value: String, constraints: Constraint) : this(
             textRenderer,
@@ -235,62 +283,61 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
 
         fun checkForError(): String? {
             if (input.text.isEmpty()) {
-                return "Shape $label cannot be empty."
+                return "Shape ${label.lowercase()} cannot be empty."
             }
-            val value = input.text.toIntOrNull() ?: return "Shape $label must be a number."
+            val value = input.text.toIntOrNull() ?: return "Shape ${label.lowercase()} must be a number."
 
             if (constraints.min > value) {
-                return "Shape $label must be greater than or equal ${constraints.min}."
+                return "Shape ${label.lowercase()} must be greater than or equal ${constraints.min}."
             }
 
             if (constraints.max != null && constraints.max!! < value) {
-                return "Shape $label must be less than or equal ${constraints.max}."
+                return "Shape ${label.lowercase()} must be less than or equal ${constraints.max}."
             }
             return null
+        }
+
+        fun getLabel(): Label {
+            return Label(label, input.x, input.y - 10)
         }
 
         fun getValue(): String {
             return input.text
         }
 
+        /**
+         * @param listener The listener that will be called when the value changes and **is valid**
+         */
         fun setValue(value: String, listener: Consumer<String>) {
             input.text = value
-            input.setChangedListener(listener)
+            input.setChangedListener {
+                if (checkForError() !== null) return@setChangedListener // Check for error first
+                listener.accept(input.text)
+            }
         }
 
         override fun setX(x: Int) {
-            this.x = x
             input.x = x
         }
 
         override fun setY(y: Int) {
-            this.y = y
-            input.y = y + 10
+            input.y = y
         }
 
         override fun getX(): Int {
-            return x
+            return input.x
         }
 
         override fun getY(): Int {
-            return y
+            return input.y
         }
 
         override fun getWidth(): Int {
-            return input.width
+            return 50
         }
 
         override fun getHeight(): Int {
-            return input.height
-        }
-
-        override fun forEachChild(consumer: Consumer<ClickableWidget>) {
-            return listOf(input).forEach { consumer.accept(it) }
-        }
-
-        override fun render(context: DrawContext, mouseX: Int, mouseY: Int, delta: Float) {
-            context.drawText(textRenderer, label, x, y, 0xffffff, false)
-            input.render(context, mouseX, mouseY, delta)
+            return 20
         }
 
         /**
@@ -298,5 +345,11 @@ class ShapePropertyInputGenerator(private val textRenderer: TextRenderer) {
          * @param max The maximum value for the input (inclusive). If null, there is no maximum.
          */
         data class Constraint(val min: Int, val max: Int?)
+
+        override fun forEachChild(consumer: Consumer<ClickableWidget>) {
+            consumer.accept(input)
+        }
     }
+
+    data class Label(val text: String, val x: Int, val y: Int)
 }

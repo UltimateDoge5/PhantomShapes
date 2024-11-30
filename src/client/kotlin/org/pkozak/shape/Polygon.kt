@@ -37,7 +37,7 @@ class Polygon(
 
         // Connect the vertices
         for (i in 0 until sides) {
-            val next = (i + 1) % sides
+            val next = (i + 1) % sides // Modulo so we wrap around to the first vertex
             val vertex1 = vertices.elementAt(i)
             val vertex2 = vertices.elementAt(next)
 
@@ -49,6 +49,12 @@ class Polygon(
                     vertex2.z
                 )
             )
+        }
+
+        // Scale with height
+        val blockPositionsCopy = blockPositions.toMutableSet()
+        for(i in 1 until height) {
+            blockPositionsCopy.forEach { blockPositions.add(Vec3d(it.x, it.y + i, it.z)) }
         }
 
         return blockPositions
