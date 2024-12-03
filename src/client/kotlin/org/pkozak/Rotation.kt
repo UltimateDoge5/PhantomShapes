@@ -87,6 +87,12 @@ class Rotation() {
 
     companion object {
         fun fromString(string: String): Rotation {
+            // First check for legacy rotation format
+            val rotationY = string.toIntOrNull()
+            if (rotationY != null) {
+                return Rotation(0, rotationY, 0)
+            }
+
             try {
                 val parts = string.substring(1, string.length - 1).split(", ")
                 return Rotation(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())

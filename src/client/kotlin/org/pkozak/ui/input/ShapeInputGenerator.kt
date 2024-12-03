@@ -57,6 +57,32 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
                 elements.add(ShapePropertyInput(textRenderer, "Sides", "6", ShapePropertyInput.Constraint(3, 12)))
                 addRotationInputs()
             }
+
+            ShapeType.TORUS -> {
+                elements.add(
+                    ShapePropertyInput(
+                        textRenderer,
+                        "Major r.",
+                        "6",
+                        ShapePropertyInput.Constraint(3, null)
+                    ).apply {
+                        label = "Radii"
+                        tooltip = "Major radius (Distance of the ring from the center)"
+                    }
+                )
+                elements.add(
+                    ShapePropertyInput(
+                        textRenderer,
+                        "Minor r.",
+                        "5",
+                        ShapePropertyInput.Constraint(3, null)
+                    ).apply {
+                        label = null
+                        tooltip = "Minor radius (Thickness of the ring)"
+                    }
+                )
+                addRotationInputs()
+            }
         }
 
         // If there are rotation inputs, make sure they are in the next row, by making the last element of the first row take up more columns
@@ -99,7 +125,12 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
     }
 
     private fun addRotationInputs() {
-        elements.add(ShapeRotationInput(ShapeRotationInput.Axis.X, true)) // Show the "Rotation" label only once and at the beginning
+        elements.add(
+            ShapeRotationInput(
+                ShapeRotationInput.Axis.X,
+                true
+            )
+        ) // Show the "Rotation" label only once and at the beginning
         elements.add(ShapeRotationInput(ShapeRotationInput.Axis.Y))
         elements.add(ShapeRotationInput(ShapeRotationInput.Axis.Z))
     }
@@ -205,6 +236,19 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
                 })
                 addRotationListeners(editedShape)
             }
+
+            ShapeType.TORUS -> {
+                elements[0].setValue((editedShape as Torus).radius.toString(), fun(radius: String) {
+                    editedShape.radius = radius.toInt()
+                    editedShape.shouldRerender = true
+                })
+
+                elements[1].setValue(editedShape.minorRadius.toString(), fun(minorRadius: String) {
+                    editedShape.minorRadius = minorRadius.toInt()
+                    editedShape.shouldRerender = true
+                })
+                addRotationListeners(editedShape)
+            }
         }
 
         return grid
@@ -252,6 +296,14 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
                 (shape as Polygon).radius = radius
                 shape.height = height
                 shape.sides = sides
+                return shape
+            }
+
+            ShapeType.TORUS -> {
+                val radius = elements[0].getValue().toInt()
+                val minorRadius = elements[1].getValue().toInt()
+                (shape as Torus).radius = radius
+                shape.minorRadius = minorRadius
                 return shape
             }
         }

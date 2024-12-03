@@ -7,8 +7,18 @@ import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.Text
 import java.util.function.Consumer
 
-class ShapePropertyInput(textRenderer: TextRenderer, private val placeholder: String, value: String) : ShapeInput {
 
+/**
+ * A wrapper around the `TextFieldWidget` that allows for easy positioning of an input field, and its label.
+ * Also performs validation on the input using the constraints that can be provided.
+ *
+ * @param textRenderer The text renderer used for rendering the text.
+ * @param placeholder The placeholder text for the input, also used for the tooltip and the label.
+ * @param value The initial value of the input.
+ *
+ * @see net.minecraft.client.gui.widget.TextFieldWidget
+ */
+class ShapePropertyInput(textRenderer: TextRenderer, private val placeholder: String, value: String) : ShapeInput {
     constructor(textRenderer: TextRenderer, label: String, value: String, constraints: Constraint) : this(
         textRenderer,
         label,
@@ -17,12 +27,19 @@ class ShapePropertyInput(textRenderer: TextRenderer, private val placeholder: St
         this.constraints = constraints
     }
 
+    // We need a setter as init fires before the label is set in the generator and the tooltip would not update.
     var label: String? = placeholder
         set(value) {
             field = value
             if (label === null || label !== placeholder) {
                 input.tooltip = Tooltip.of(Text.of(placeholder))
             }
+        }
+
+    var tooltip: String? = placeholder
+        set(value) {
+            field = value
+            input.tooltip = Tooltip.of(Text.of(value))
         }
     private val input = TextFieldWidget(textRenderer, 50, 20, Text.of(value))
     private var constraints = Constraint(1, null)
@@ -67,6 +84,7 @@ class ShapePropertyInput(textRenderer: TextRenderer, private val placeholder: St
         }
     }
 
+
     override fun setX(x: Int) {
         input.x = x
     }
@@ -84,11 +102,11 @@ class ShapePropertyInput(textRenderer: TextRenderer, private val placeholder: St
     }
 
     override fun getWidth(): Int {
-        return 50
+        return input.width
     }
 
     override fun getHeight(): Int {
-        return 20
+        return input.height
     }
 
     /**

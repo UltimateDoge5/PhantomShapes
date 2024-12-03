@@ -50,7 +50,8 @@ abstract class Shape {
         ShapeType.SPHERE -> Icons.SPHERE_ICON
         ShapeType.CYLINDER -> Icons.CYLINDER_ICON
         ShapeType.ARCH -> Icons.ARCH_ICON
-        ShapeType.POLYGON -> Icons.HEXAGON_ICON
+        ShapeType.POLYGON -> Icons.POLYGON_ICON
+        ShapeType.TORUS -> Icons.ARCH_ICON
     }
 
     abstract fun toJsonObject(): JsonObject
@@ -102,9 +103,11 @@ abstract class Shape {
                 ShapeType.CYLINDER -> {
                     val radius = json["radius"].toString().toInt()
                     val height = json["height"].toString().toInt()
+                    val rotation = Rotation.fromString(json["rotation"].toString())
 
                     Cylinder(name, color, pos, radius, height).apply {
                         this.enabled = enabled
+                        this.rotation = rotation
                     }
                 }
 
@@ -123,9 +126,22 @@ abstract class Shape {
                     val radius = json["radius"].toString().toInt()
                     val height = json["height"].toString().toInt()
                     val sides = json["sides"].toString().toInt()
+                    val rotation = Rotation.fromString(json["rotation"].toString())
 
                     Polygon(name, color, pos, radius, height, sides).apply {
                         this.enabled = enabled
+                        this.rotation = rotation
+                    }
+                }
+
+                ShapeType.TORUS -> {
+                    val radius = json["radius"].toString().toInt()
+                    val minorRadius = json["minorRadius"].toString().toInt()
+                    val rotation = Rotation.fromString(json["rotation"].toString())
+
+                    Torus(name, color, pos, radius, minorRadius).apply {
+                        this.enabled = enabled
+                        this.rotation = rotation
                     }
                 }
             }
@@ -136,7 +152,8 @@ abstract class Shape {
             ShapeType.SPHERE -> Icons.SPHERE_ICON
             ShapeType.CYLINDER -> Icons.CYLINDER_ICON
             ShapeType.ARCH -> Icons.ARCH_ICON
-            ShapeType.POLYGON -> Icons.HEXAGON_ICON
+            ShapeType.POLYGON -> Icons.POLYGON_ICON
+            ShapeType.TORUS -> Icons.ARCH_ICON
         }
 
         // Use this function to migrate shapes from older versions of the mod
@@ -190,5 +207,5 @@ abstract class Shape {
 }
 
 enum class ShapeType {
-    CUBE, SPHERE, CYLINDER, ARCH, POLYGON
+    CUBE, SPHERE, CYLINDER, ARCH, POLYGON, TORUS
 }

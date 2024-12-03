@@ -10,9 +10,8 @@ class Icons {
         val VISIBLE_ICON: Identifier = Identifier.of("phantomshapes", "eye_open")
         val INVISIBLE_ICON: Identifier = Identifier.of("phantomshapes", "eye_closed")
         val ARCH_ICON: Identifier = Identifier.of("phantomshapes", "arch")
-        val HEXAGON_ICON: Identifier = Identifier.of("phantomshapes", "hexagon")
+        val POLYGON_ICON: Identifier = Identifier.of("phantomshapes", "polygon")
         val PIN_ICON: Identifier = Identifier.of("phantomshapes", "pin")
-//        val ROTATE: Identifier = Identifier.of("phantomshapes", "rotate")
 //        val DELETE_ICON = Identifier.of("phantomshapes", "delete")
     }
 }

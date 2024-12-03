@@ -5,11 +5,19 @@ import net.minecraft.client.gui.screen.narration.NarrationPart
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.PressableWidget
 import net.minecraft.text.Text
-
 import java.util.function.Consumer
 
+/**
+ * Custom implementation of the `CyclingButtonWidget`, a lot of code is inspired from that class.
+ * With changes to text rendering and being purposely made for rotation input.
+ *
+ * @param axis Enum of the axis that this input controls. Used for tooltips and placeholders.
+ * @param showLabel Rotation inputs benefit from having a group label "Rotation", so this allows for control of that.
+ *
+ * @see net.minecraft.client.gui.widget.CyclingButtonWidget
+ */
 class ShapeRotationInput(private val axis: Axis, private val showLabel: Boolean) : ShapeInput,
-    PressableWidget(0, 0, 50, 20, Text.of("")) {
+    PressableWidget(0, 0, 50, 20, Text.of("0 deg")) {
     private val texts = arrayOf("0 deg", "90 deg", "180 deg", "270 deg")
     private val degrees = arrayOf(0, 90, 180, 270)
     private var listener: Consumer<String>? = null

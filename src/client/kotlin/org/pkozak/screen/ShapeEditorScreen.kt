@@ -132,7 +132,12 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
                     shapeType = ShapeType.POLYGON
                 }
 
-                "hexagon" -> {
+                "polygon" -> {
+                    shapeTypeInput!!.message = Text.literal("Torus")
+                    shapeType = ShapeType.TORUS
+                }
+
+                "torus" -> {
                     shapeTypeInput!!.message = Text.literal("Cube")
                     shapeType = ShapeType.CUBE
                 }
@@ -340,6 +345,11 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
             ShapeType.POLYGON -> {
                 val shape = shapePropertiesGenerator!!.getShapeProperties(Polygon(name, color, pos, 1, 1, 1))
+                parent.addShape(shape)
+            }
+
+            ShapeType.TORUS -> {
+                val shape = shapePropertiesGenerator!!.getShapeProperties(Torus(name, color, pos, 1, 1))
                 parent.addShape(shape)
             }
         }

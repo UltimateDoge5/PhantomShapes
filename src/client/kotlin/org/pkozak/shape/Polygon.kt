@@ -53,11 +53,12 @@ class Polygon(
 
         // Scale with height
         val blockPositionsCopy = blockPositions.toMutableSet()
-        for(i in 1 until height) {
+        for (i in 1 until height) {
             blockPositionsCopy.forEach { blockPositions.add(Vec3d(it.x, it.y + i, it.z)) }
         }
 
-        return blockPositions
+        // Offset the polygon by -1 in the x
+        return blockPositions.map { Vec3d(it.x - 1, it.y, it.z) }.toMutableSet()
     }
 
     // Plot lines on the Minecraft's square grid between vertices using Bresenham's line algorithm
