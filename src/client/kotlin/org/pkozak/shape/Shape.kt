@@ -153,7 +153,7 @@ abstract class Shape {
             ShapeType.CYLINDER -> Icons.CYLINDER_ICON
             ShapeType.ARCH -> Icons.ARCH_ICON
             ShapeType.POLYGON -> Icons.POLYGON_ICON
-            ShapeType.TORUS -> Icons.ARCH_ICON
+            ShapeType.TORUS -> Icons.TORUS_ICON
         }
 
         // Use this function to migrate shapes from older versions of the mod

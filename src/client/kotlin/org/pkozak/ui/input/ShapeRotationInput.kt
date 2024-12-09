@@ -37,11 +37,14 @@ class ShapeRotationInput(private val axis: Axis, private val showLabel: Boolean)
         return degrees[degreeIndex].toString()
     }
 
-    override fun setValue(value: String, listener: Consumer<String>) {
+    override fun setValue(value: String) {
         require(value.toIntOrNull() in degrees) { "Invalid rotation value" }
         degreeIndex = degrees.indexOf(value.toInt())
-        this.listener = listener
         refreshTooltip()
+    }
+
+    override fun setChangedListener(listener: Consumer<String>) {
+        this.listener = listener
     }
 
     override fun appendClickableNarrations(builder: NarrationMessageBuilder) {

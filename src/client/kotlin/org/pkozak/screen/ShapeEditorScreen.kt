@@ -17,6 +17,8 @@ import org.pkozak.shape.*
 import org.pkozak.ui.IconButton
 import org.pkozak.ui.Icons
 import org.pkozak.ui.input.ShapeInputGenerator
+import org.pkozak.ui.input.ShapePropertyInput
+import org.pkozak.ui.input.ShapePropertyInput.Constraint
 import java.awt.Color
 
 class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShape: Shape?) :
@@ -28,13 +30,13 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     private var shapeNameInput: TextFieldWidget? = null
     private var shapeTypeInput: ButtonWidget? = null // OptionListWidget is too complex and not worth the time
 
-    private var xCoordsInput: TextFieldWidget? = null
-    private var yCoordsInput: TextFieldWidget? = null
-    private var zCoordsInput: TextFieldWidget? = null
+    private var xCoordsInput: ShapePropertyInput? = null
+    private var yCoordsInput: ShapePropertyInput? = null
+    private var zCoordsInput: ShapePropertyInput? = null
 
-    private var redInput: TextFieldWidget? = null
-    private var greenInput: TextFieldWidget? = null
-    private var blueInput: TextFieldWidget? = null
+    private var redInput: ShapePropertyInput? = null
+    private var greenInput: ShapePropertyInput? = null
+    private var blueInput: ShapePropertyInput? = null
 
     private var confirmBtn: ButtonWidget? = null
     private var centerBtn: IconButton? = null
@@ -50,39 +52,44 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
         shapeNameInput!!.setPlaceholder(Text.literal("Shape name"))
         shapeNameInput!!.text = "New shape ${parent.shapes.size + 1}"
 
+
+        // For the rest of the inputs, use property inputs instead of text ones.
+        // Property inputs handle scroll input and automatically validate inputs
+        // We don't have to use the labels at all
         xCoordsInput =
-            TextFieldWidget(client!!.textRenderer, width / 3 - 25 - 54, 100, 50, 20, Text.literal("X coordinate"))
+            ShapePropertyInput(client!!.textRenderer, width / 3 - 25 - 54, 100, "X coordinate")
         xCoordsInput!!.setPlaceholder(Text.literal("X"))
         xCoordsInput!!.text = client?.player?.x?.toInt().toString()
-        xCoordsInput!!.tooltip = Tooltip.of(Text.literal("X coordinate"))
+        xCoordsInput!!.constraints = null
 
         yCoordsInput =
-            TextFieldWidget(client!!.textRenderer, width / 3 - 25, 100, 50, 20, Text.literal("Y coordinate"))
+            ShapePropertyInput(client!!.textRenderer, width / 3 - 25, 100, "Y coordinate")
         yCoordsInput!!.setPlaceholder(Text.literal("Y"))
         yCoordsInput!!.text = client?.player?.y?.toInt().toString()
-        yCoordsInput!!.tooltip = Tooltip.of(Text.literal("Y coordinate"))
+        yCoordsInput!!.constraints = null
 
         zCoordsInput =
-            TextFieldWidget(client!!.textRenderer, width / 3 - 25 + 54, 100, 50, 20, Text.literal("Z coordinate"))
+            ShapePropertyInput(client!!.textRenderer, width / 3 - 25 + 54, 100, "Z coordinate")
         zCoordsInput!!.setPlaceholder(Text.literal("Z"))
         zCoordsInput!!.text = client?.player?.z?.toInt().toString()
-        zCoordsInput!!.tooltip = Tooltip.of(Text.literal("Z coordinate"))
+        zCoordsInput!!.constraints = null
 
         // Color inputs
-        redInput = TextFieldWidget(client!!.textRenderer, width / 3 - 25 - 54, 140, 50, 20, Text.literal("Red"))
+        redInput = ShapePropertyInput(client!!.textRenderer, width / 3 - 25 - 54, 140, "Red")
         redInput!!.setPlaceholder(Text.literal("Red"))
         redInput!!.text = "0"
-        redInput!!.tooltip = Tooltip.of(Text.literal("Red"))
+        redInput!!.constraints = Constraint(0, 255)
 
-        greenInput = TextFieldWidget(client!!.textRenderer, width / 3 - 25, 140, 50, 20, Text.literal("Green"))
+        greenInput = ShapePropertyInput(client!!.textRenderer, width / 3 - 25, 140, "Green")
         greenInput!!.setPlaceholder(Text.literal("Green"))
         greenInput!!.text = "255"
-        greenInput!!.tooltip = Tooltip.of(Text.literal("Green"))
+        greenInput!!.constraints = Constraint(0, 255)
 
-        blueInput = TextFieldWidget(client!!.textRenderer, width / 3 - 25 + 54, 140, 50, 20, Text.literal("Blue"))
+
+        blueInput = ShapePropertyInput(client!!.textRenderer, width / 3 - 25 + 54, 140, "Blue")
         blueInput!!.setPlaceholder(Text.literal("Blue"))
         blueInput!!.text = "255"
-        blueInput!!.tooltip = Tooltip.of(Text.literal("Blue"))
+        blueInput!!.constraints = Constraint(0, 255)
 
         confirmBtn = ButtonWidget.builder(Text.literal("Confirm")) {
             if (editedShape == null) createShape()
@@ -322,6 +329,8 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
 
         val pos = Vec3d(x, y, z)
         val color = Color(redInput!!.text.toInt(), greenInput!!.text.toInt(), blueInput!!.text.toInt())
+
+        // Create a shape with arbitrary properties as it then gets overwritten via the generator
         when (shapeType) {
             ShapeType.CUBE -> {
                 val shape = shapePropertiesGenerator!!.getShapeProperties(Cube(name, color, pos, Vec3i.ZERO))
@@ -371,6 +380,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
             return false
         }
 
+        // This could be technically removed but I prefere these error messages than the input automated ones
         if (xCoordsInput!!.text.isEmpty() || yCoordsInput!!.text.isEmpty() || zCoordsInput!!.text.isEmpty()) {
             errorText = "Coordinates cannot be empty"
             return false
@@ -406,20 +416,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     }
 
     private fun onCoordinateChange() {
-        if (xCoordsInput!!.text.isEmpty() || yCoordsInput!!.text.isEmpty() || zCoordsInput!!.text.isEmpty()) {
-            return
-        }
-
-        try {
-            xCoordsInput!!.text.toDouble()
-            yCoordsInput!!.text.toDouble()
-            zCoordsInput!!.text.toDouble()
-        } catch (e: NumberFormatException) {
-            return
-        }
-
-        val vec =
-            Vec3d(xCoordsInput!!.text.toDouble(), yCoordsInput!!.text.toDouble(), zCoordsInput!!.text.toDouble())
+        val vec = Vec3d(xCoordsInput!!.text.toDouble(), yCoordsInput!!.text.toDouble(), zCoordsInput!!.text.toDouble())
         editedShape?.pos = vec
         editedShape?.shouldRerender = true
     }
@@ -431,19 +428,7 @@ class ShapeEditorScreen(private val parent: ShapesScreen, private val editedShap
     }
 
     private fun validateColor(): Color? {
-        if (redInput!!.text.isEmpty() || greenInput!!.text.isEmpty() || blueInput!!.text.isEmpty()) {
-            return null
-        }
-
-        try {
-            redInput!!.text.toInt()
-            greenInput!!.text.toInt()
-            blueInput!!.text.toInt()
-        } catch (e: NumberFormatException) {
-            return null
-        }
-
-        if (redInput!!.text.toInt() !in 0..255 || greenInput!!.text.toInt() !in 0..255 || blueInput!!.text.toInt() !in 0..255) {
+        if (redInput!!.checkForError() !== null || greenInput!!.checkForError() !== null || blueInput!!.checkForError() !== null) {
             return null
         }
 

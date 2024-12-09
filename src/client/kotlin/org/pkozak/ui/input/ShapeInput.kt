@@ -12,7 +12,8 @@ interface ShapeInput : Widget {
     fun checkForError(): String?
     fun getLabel(): Label?
     fun getValue(): String
-    fun setValue(value: String, listener: Consumer<String>)
+    fun setValue(value: String)
+    fun setChangedListener(listener: Consumer<String>)
 }
 
 data class Label(val text: String, val x: Int, val y: Int)
