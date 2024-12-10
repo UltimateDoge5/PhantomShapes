@@ -29,12 +29,6 @@
       }
     ]
   },
-  "mixins": [
-    {
-      "config": "phantomshapes.client.mixins.json",
-      "environment": "client"
-    }
-  ],
   "recommends": {
     "modmenu": ">11.0.1"
   },

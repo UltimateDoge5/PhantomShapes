@@ -4,8 +4,8 @@
 # Phantom Shapes Mod
 
 The **Phantom Shapes Mod** for Minecraft introduces a tool for previewing 3D shapes.
-With this mod, building 3D shapes
-becomes an ease, thanks to the inclusion of diverse shapes like cubes, spheres, cylinders, and tunnels.
+With this mod, building 3D shapes becomes an ease, thanks to the inclusion of diverse shapes like cubes, spheres,
+cylinders, and toruses.
 
 Get the newest version on [Modrinth](https://modrinth.com/mod/phantomshapes).  
 If you have any problems or have an idea for a new feature, please make
@@ -19,7 +19,8 @@ an [issue](https://github.com/UltimateDoge5/PhantomShapes/issues).
 - Spheres
 - Cylinders
 - Arches
-- Hexagons
+- Polygons
+- Toruses
 
 #### Rotating Shapes
 
@@ -30,11 +31,13 @@ For example, you can rotate a cylinder by 90 degrees in the X axis to create a t
 
 - A user-friendly interface allows players to easily navigate through the different shape options.
 - Convenient controls make shaping and resizing structures a breeze, giving players complete control over their shapes.
-- Options to change the color and transparency of the shapes.
+- Scrollable inputs allow for precise property adjustments. Hold shift or control to change the value by 10 or 100
+  respectively.
+- Options to change the color and transparency of the shapes or even the size of the blocks themselves.
 
 ### Compatibility
 
-If you find any incompatibilities, please let me know.
+If you find any incompatibilities, please let me know by making an [issue](https://github.com/UltimateDoge5/PhantomShapes/issues).
 
 | Mod      | Compatibility |
 |----------|---------------|
@@ -47,7 +50,7 @@ Upon loading into the game simply press `K` and the shape manager menu will show
 You can change the key binds in the controls menu.
 From that point, you should be able to use the interface to do anything.
 
-Mod settings can be accessed using either Settings button in the shapes menu
+Mod settings can be accessed using either the Settings button in the shapes menu
 or [Mod Menu](https://modrinth.com/mod/modmenu)
 
 ## Required libraries

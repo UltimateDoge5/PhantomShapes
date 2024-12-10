@@ -29,7 +29,7 @@ class RenderUtil {
             }
 
             if (blocks.isEmpty()) {
-                logger.warn("[PhantomShapes] Shape ${shape.name} passed no blocks to render")
+                logger.debug("Shape ${shape.name} passed no blocks to render")
                 return
             }
 

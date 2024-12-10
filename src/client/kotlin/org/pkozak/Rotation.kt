@@ -94,7 +94,7 @@ class Rotation() {
             }
 
             try {
-                val parts = string.substring(1, string.length - 1).split(", ")
+                val parts = string.substring(1, string.length - 1).split(",")
                 return Rotation(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
             } catch (e: Exception) {
                 return Rotation(0, 0, 0)

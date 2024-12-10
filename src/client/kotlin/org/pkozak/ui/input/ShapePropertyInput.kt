@@ -124,18 +124,28 @@ class ShapePropertyInput(textRenderer: TextRenderer, private val placeholder: St
         if (verticalAmount > 0.0) {
             val increment = if (isCtrlPressed) 100 else if (isShiftPressed) 10 else 1
             val newValue = text.toInt() + increment
-            text = if (constraints!!.max != null) {
-                min(newValue, constraints!!.max!!).toString()
+
+            text = if (constraints !== null) {
+                if (constraints!!.max != null) {
+                    min(newValue, constraints!!.max!!).toString()
+                } else {
+                    newValue.toString()
+                }
             } else {
                 newValue.toString()
             }
         } else {
             val decrement = if (isCtrlPressed) 100 else if (isShiftPressed) 10 else 1
             val newValue = text.toInt() - decrement
-            text = if (constraints!!.min <= newValue) {
-                newValue.toString()
+
+            text = if (constraints !== null) {
+                if (constraints!!.min <= newValue) {
+                    newValue.toString()
+                } else {
+                    constraints!!.min.toString()
+                }
             } else {
-                constraints!!.min.toString()
+                newValue.toString()
             }
         }
 

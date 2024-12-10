@@ -1,6 +1,5 @@
 package org.pkozak
 
-import dev.isxander.yacl3.api.NameableEnum
 import dev.isxander.yacl3.api.Option
 import dev.isxander.yacl3.api.OptionDescription
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder
@@ -14,7 +13,6 @@ import net.minecraft.text.Text
 import org.pkozak.util.SavedDataManager
 import org.pkozak.util.SavedDataManager.Companion.toSafeBoolean
 import org.pkozak.util.SavedDataManager.Companion.toSafeFloat
-import java.util.*
 
 class Options {
     var renderShapes = true
@@ -55,13 +53,13 @@ class Options {
             blockSize = toSafeFloat(json, "blockSize", blockSize)
         }
 
-        renderShapesOption = Option.createBuilder<Boolean>() // boolean is the type of option we'll be making
+        renderShapesOption = Option.createBuilder<Boolean>()
             .name(Text.translatable("options.phantomshapes.enable_render"))
             .description(OptionDescription.of(Text.translatable("options.phantomshapes.enable_render.tooltip")))
             .binding(true, { renderShapes }, { renderShapes = it })
             .controller { opt -> BooleanControllerBuilder.create(opt).coloured(true) }.build()
 
-        drawOnBlocksOption = Option.createBuilder<Boolean>() // boolean is the type of option we'll be making
+        drawOnBlocksOption = Option.createBuilder<Boolean>()
             .name(Text.translatable("options.phantomshapes.draw_on_blocks"))
             .description(OptionDescription.of(Text.translatable("options.phantomshapes.draw_on_blocks.tooltip")))
             .binding(false, { drawOnBlocks }, { drawOnBlocks = it })
@@ -110,11 +108,7 @@ class Options {
         SavedDataManager.writeToFile("phantomshapes.json", json.toString(), true)
     }
 
-    enum class DrawMode : NameableEnum {
+    enum class DrawMode {
         EDGES, FACES, BOTH;
-
-        override fun getDisplayName(): Text {
-            return Text.translatable("options.phantomshapes.draw_mode." + name.lowercase(Locale.getDefault()))
-        }
     }
 }

@@ -59,28 +59,18 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
             }
 
             ShapeType.TORUS -> {
-                elements.add(
-                    ShapePropertyInput(
-                        textRenderer,
-                        "Major r.",
-                        "6",
-                        ShapePropertyInput.Constraint(3, null)
-                    ).apply {
-                        label = "Radii"
-                        tooltip = "Major radius (Distance of the ring from the center)"
-                    }
-                )
-                elements.add(
-                    ShapePropertyInput(
-                        textRenderer,
-                        "Minor r.",
-                        "5",
-                        ShapePropertyInput.Constraint(3, null)
-                    ).apply {
-                        label = null
-                        tooltip = "Minor radius (Thickness of the ring)"
-                    }
-                )
+                elements.add(ShapePropertyInput(
+                    textRenderer, "Major r.", "6", ShapePropertyInput.Constraint(3, null)
+                ).apply {
+                    label = "Radii"
+                    tooltip = "Major radius (Distance of the ring from the center)"
+                })
+                elements.add(ShapePropertyInput(
+                    textRenderer, "Minor r.", "5", ShapePropertyInput.Constraint(3, null)
+                ).apply {
+                    label = null
+                    tooltip = "Minor radius (Thickness of the ring)"
+                })
                 addRotationInputs()
             }
         }
@@ -127,8 +117,7 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
     private fun addRotationInputs() {
         elements.add(
             ShapeRotationInput(
-                ShapeRotationInput.Axis.X,
-                true
+                ShapeRotationInput.Axis.X, true
             )
         ) // Show the "Rotation" label only once and at the beginning
         elements.add(ShapeRotationInput(ShapeRotationInput.Axis.Y))
@@ -137,15 +126,19 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
 
     private fun addRotationListeners(editedShape: Shape) {
         val inputs = elements.slice(elements.size - 3 until elements.size)
-        inputs[0].setValue(editedShape.rotation.x.toString(), fun(rotationX: String) {
+        inputs[0].setValue(editedShape.rotation.x.toString())
+        inputs[0].setChangedListener(fun(rotationX: String) {
             editedShape.rotation.x = rotationX.toInt()
             editedShape.shouldRerender = true
         })
-        inputs[1].setValue(editedShape.rotation.y.toString(), fun(rotationY: String) {
+
+        inputs[1].setValue(editedShape.rotation.y.toString())
+        inputs[1].setChangedListener(fun(rotationY: String) {
             editedShape.rotation.y = rotationY.toInt()
             editedShape.shouldRerender = true
         })
-        inputs[2].setValue(editedShape.rotation.z.toString(), fun(rotationZ: String) {
+        inputs[2].setValue(editedShape.rotation.z.toString())
+        inputs[2].setChangedListener(fun(rotationZ: String) {
             editedShape.rotation.z = rotationZ.toInt()
             editedShape.shouldRerender = true
         })
@@ -173,33 +166,38 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
                     // We still need to check for errors, because the listener groups all the inputs together
                     if (elements.slice(0..2).any { it.checkForError() !== null }) return
                     val vec = Vec3i(
-                        elements[0].getValue().toInt(),
-                        elements[1].getValue().toInt(),
-                        elements[2].getValue().toInt()
+                        elements[0].getValue().toInt(), elements[1].getValue().toInt(), elements[2].getValue().toInt()
                     )
                     (editedShape as Cube).dimensions = vec
                     editedShape.shouldRerender = true
                 }
 
-                elements[0].setValue((editedShape as Cube).dimensions.x.toString(), listener)
-                elements[1].setValue(editedShape.dimensions.y.toString(), listener)
-                elements[2].setValue(editedShape.dimensions.z.toString(), listener)
+                elements[0].setValue((editedShape as Cube).dimensions.x.toString())
+                elements[1].setValue(editedShape.dimensions.y.toString())
+                elements[2].setValue(editedShape.dimensions.z.toString())
+
+                elements[0].setChangedListener(listener)
+                elements[1].setChangedListener(listener)
+                elements[2].setChangedListener(listener)
             }
 
             ShapeType.SPHERE -> {
-                elements[0].setValue((editedShape as Sphere).radius.toString(), fun(radius: String) {
+                elements[0].setValue((editedShape as Sphere).radius.toString())
+                elements[0].setChangedListener(fun(radius: String) {
                     editedShape.radius = radius.toInt()
                     editedShape.shouldRerender = true
                 })
             }
 
             ShapeType.CYLINDER -> {
-                elements[0].setValue((editedShape as Cylinder).radius.toString(), fun(radius: String) {
+                elements[0].setValue((editedShape as Cylinder).radius.toString())
+                elements[0].setChangedListener(fun(radius: String) {
                     editedShape.radius = radius.toInt()
                     editedShape.shouldRerender = true
                 })
 
-                elements[1].setValue(editedShape.height.toString(), fun(height: String) {
+                elements[1].setValue(editedShape.height.toString())
+                elements[1].setChangedListener(fun(height: String) {
                     editedShape.height = height.toInt()
                     editedShape.shouldRerender = true
                 })
@@ -207,12 +205,14 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
             }
 
             ShapeType.ARCH -> {
-                elements[0].setValue((editedShape as Arch).radius.toString(), fun(radius: String) {
+                elements[0].setValue((editedShape as Arch).radius.toString())
+                elements[0].setChangedListener(fun(radius: String) {
                     editedShape.radius = radius.toInt()
                     editedShape.shouldRerender = true
                 })
 
-                elements[1].setValue(editedShape.width.toString(), fun(width: String) {
+                elements[1].setValue(editedShape.width.toString())
+                elements[1].setChangedListener(fun(width: String) {
                     editedShape.width = width.toInt()
                     editedShape.shouldRerender = true
                 })
@@ -220,17 +220,20 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
             }
 
             ShapeType.POLYGON -> {
-                elements[0].setValue((editedShape as Polygon).radius.toString(), fun(radius: String) {
+                elements[0].setValue((editedShape as Polygon).radius.toString())
+                elements[0].setChangedListener(fun(radius: String) {
                     editedShape.radius = radius.toInt()
                     editedShape.shouldRerender = true
                 })
 
-                elements[1].setValue(editedShape.height.toString(), fun(height: String) {
+                elements[1].setValue(editedShape.height.toString())
+                elements[1].setChangedListener(fun(height: String) {
                     editedShape.height = height.toInt()
                     editedShape.shouldRerender = true
                 })
 
-                elements[2].setValue(editedShape.sides.toString(), fun(sides: String) {
+                elements[2].setValue(editedShape.sides.toString())
+                elements[2].setChangedListener(fun(sides: String) {
                     editedShape.sides = sides.toInt()
                     editedShape.shouldRerender = true
                 })
@@ -238,12 +241,14 @@ class ShapeInputGenerator(private val textRenderer: TextRenderer) {
             }
 
             ShapeType.TORUS -> {
-                elements[0].setValue((editedShape as Torus).radius.toString(), fun(radius: String) {
+                elements[0].setValue((editedShape as Torus).radius.toString())
+                elements[0].setChangedListener(fun(radius: String) {
                     editedShape.radius = radius.toInt()
                     editedShape.shouldRerender = true
                 })
 
-                elements[1].setValue(editedShape.minorRadius.toString(), fun(minorRadius: String) {
+                elements[1].setValue(editedShape.minorRadius.toString())
+                elements[1].setChangedListener(fun(minorRadius: String) {
                     editedShape.minorRadius = minorRadius.toInt()
                     editedShape.shouldRerender = true
                 })

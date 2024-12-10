@@ -6,6 +6,7 @@ import kotlinx.serialization.json.put
 import net.minecraft.util.math.Vec3d
 import java.awt.Color
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.sin
 
@@ -17,16 +18,19 @@ class Torus(
     var minorRadius: Int
 ) : RadialShape() {
     override val type: ShapeType = ShapeType.TORUS
-    private val steps = 200 // Number of steps for u and v
 
     // Based and adapted from https://electronut.in/rendering-a-torus-geometry-lighting-and-textures/
     override fun generateBlocks(): MutableSet<Vec3d> {
         val blocks = mutableSetOf<Vec3d>()
 
-        for (i in 0 until steps) {
-            val u = 2 * Math.PI * i / steps
-            for (j in 0 until steps) {
-                val v = 2 * Math.PI * j / steps
+        // Scale the steps with the radius (steps into two variables for more efficient loops)
+        val radialSteps = max(200, radius * 20)
+        val tubularSteps = max(200, minorRadius * 20)
+
+        for (i in 0 until radialSteps) {
+            val u = 2 * Math.PI * i / radialSteps
+            for (j in 0 until tubularSteps) {
+                val v = 2 * Math.PI * j / tubularSteps
                 val x = (radius + minorRadius * cos(v)) * cos(u)
                 val y = (radius + minorRadius * cos(v)) * sin(u)
                 val z = minorRadius * sin(v)

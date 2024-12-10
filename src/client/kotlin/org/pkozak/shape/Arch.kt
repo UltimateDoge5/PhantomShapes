@@ -7,8 +7,6 @@ import net.minecraft.util.math.Vec3d
 import org.pkozak.util.MathUtil
 import java.awt.Color
 import kotlin.math.ceil
-import kotlin.math.cos
-import kotlin.math.sin
 
 class Arch(
     override var name: String,
