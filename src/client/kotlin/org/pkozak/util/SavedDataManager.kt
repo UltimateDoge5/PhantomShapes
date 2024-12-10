@@ -126,15 +126,6 @@ class SavedDataManager {
             return false
         }
 
-        fun toSafeDouble(obj: JsonObject, key: String, fallback: Double): Double {
-            return try {
-                obj[key].toString().toDouble()
-            } catch (e: Exception) {
-                logger.warn("Failed to parse double from key: $key. Using fallback value")
-                fallback
-            }
-        }
-
         fun toSafeFloat(obj: JsonObject, key: String, fallback: Float): Float {
             return try {
                 obj[key].toString().toFloat()
@@ -149,15 +140,6 @@ class SavedDataManager {
                 obj[key].toString().toBoolean()
             } catch (e: Exception) {
                 logger.warn("Failed to parse boolean from key: $key. Using fallback value")
-                fallback
-            }
-        }
-
-        fun toSafeInt(obj: JsonObject, key: String, fallback: Int): Int {
-            return try {
-                obj[key].toString().toInt()
-            } catch (e: Exception) {
-                logger.warn("Failed to parse int from key: $key. Using fallback value")
                 fallback
             }
         }

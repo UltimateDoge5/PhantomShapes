@@ -15,5 +15,7 @@
   "options.phantomshapes.fill_opacity": "Fill opacity",
   "options.phantomshapes.fill_opacity.tooltip": "Controls the opacity of the fill color of the phantom blocks",
   "options.phantomshapes.outline_opacity": "Outline opacity",
-  "options.phantomshapes.outline_opacity.tooltip": "Controls the opacity of the outline/wireframe of the phantom blocks"
+  "options.phantomshapes.outline_opacity.tooltip": "Controls the opacity of the outline/wireframe of the phantom blocks",
+  "options.phantomshapes.block_size": "Block size",
+  "options.phantomshapes.block_size.tooltip": "Controls the size of the phantom blocks in the world"
 }

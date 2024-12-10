@@ -33,10 +33,11 @@ import kotlin.math.abs
 
 
 object PhantomShapesClient : ClientModInitializer {
-    val logger: Logger = LoggerFactory.getLogger("phantomshapes")
     private val client: MinecraftClient = MinecraftClient.getInstance()
+    val logger: Logger = LoggerFactory.getLogger("phantomshapes")
     val options = Options()
 
+    private var loaded = false
     var overwriteProtection = false
 
     private var shapes = mutableListOf<Shape>()
@@ -155,6 +156,7 @@ object PhantomShapesClient : ClientModInitializer {
 
         // Load shapes from file when the world is loaded
         ServerWorldEvents.LOAD.register(ServerWorldEvents.Load { _, _ ->
+            if (loaded) return@Load
             try {
                 shapes = SavedDataManager.loadShapes()
                 logger.info("Loaded ${shapes.size} shapes from file")
@@ -167,12 +169,16 @@ object PhantomShapesClient : ClientModInitializer {
             for (shape in shapes) {
                 shape.shouldRerender = true
             }
+            loaded = true
         })
 
         ServerWorldEvents.UNLOAD.register(ServerWorldEvents.Unload { _, _ ->
             quadVboMap.clear()
             outlineVboMap.clear()
             shapes.clear()
+            shapeBlockCache.clear()
+            overwriteProtection = false
+            loaded = false
         })
 
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { client: MinecraftClient ->
@@ -218,7 +224,7 @@ object PhantomShapesClient : ClientModInitializer {
                 shape.shouldReorder = false
                 shapeBlockCache[shape.name]!!
             } else {
-                var blockList = shape.generateBlocks().toList()
+                var blockList = shape.generateTransformedBlocks().toList()
 
                 // No need for this to happen while reordering, only way for this to change is a block placement/breakage
                 // Such events trigger a re-render

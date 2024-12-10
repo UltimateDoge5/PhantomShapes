@@ -29,7 +29,7 @@ class RenderUtil {
             }
 
             if (blocks.isEmpty()) {
-                logger.warn("[PhantomShapes] Shape ${shape.name} passed no blocks to render")
+                logger.debug("Shape ${shape.name} passed no blocks to render")
                 return
             }
 
@@ -46,12 +46,19 @@ class RenderUtil {
                 val start = block.subtract(shape.pos)
                 val end = start.add(1.0, 1.0, 1.0)
 
-                val x1 = start.x.toFloat()
-                val y1 = start.y.toFloat()
-                val z1 = start.z.toFloat()
-                val x2 = end.x.toFloat()
-                val y2 = end.y.toFloat()
-                val z2 = end.z.toFloat()
+                // Calculate the block center
+                val centerX = (start.x + end.x) / 2.0
+                val centerY = (start.y + end.y) / 2.0
+                val centerZ = (start.z + end.z) / 2.0
+
+                // Adjust start and end points based on blockSize
+                val halfSize = 0.5 * options.blockSize
+                val x1 = (centerX - halfSize).toFloat()
+                val y1 = (centerY - halfSize).toFloat()
+                val z1 = (centerZ - halfSize).toFloat()
+                val x2 = (centerX + halfSize).toFloat()
+                val y2 = (centerY + halfSize).toFloat()
+                val z2 = (centerZ + halfSize).toFloat()
 
                 if (drawMode == Options.DrawMode.EDGES) {
                     buildOutline(

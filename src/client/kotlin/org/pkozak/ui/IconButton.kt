@@ -5,10 +5,8 @@ import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder
 import net.minecraft.client.gui.tooltip.Tooltip
 import net.minecraft.client.gui.widget.PressableWidget
 import net.minecraft.client.render.RenderLayer
-import net.minecraft.text.MutableText
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
-import java.util.function.Supplier
 
 class IconButton(
     x: Int, y: Int, width: Int, height: Int, var icon: Identifier?, private var iconPressAction: (IconButton) -> Unit
