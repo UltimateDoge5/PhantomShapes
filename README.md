@@ -37,7 +37,8 @@ For example, you can rotate a cylinder by 90 degrees in the X axis to create a t
 
 ### Compatibility
 
-If you find any incompatibilities, please let me know by making an [issue](https://github.com/UltimateDoge5/PhantomShapes/issues).
+If you find any incompatibilities, please let me know by making
+an [issue](https://github.com/UltimateDoge5/PhantomShapes/issues).
 
 | Mod      | Compatibility |
 |----------|---------------|

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents
@@ -155,24 +156,21 @@ object PhantomShapesClient : ClientModInitializer {
         }
 
         // Load shapes from file when the world is loaded
-        ServerWorldEvents.LOAD.register(ServerWorldEvents.Load { _, _ ->
-            if (loaded) return@Load
-            try {
-                shapes = SavedDataManager.loadShapes()
-                logger.info("Loaded ${shapes.size} shapes from file")
-            } catch (e: Exception) {
-                logger.error("Failed to load shapes from file", e)
-                logger.info("Locking the file to prevent overwriting it")
-                overwriteProtection = true
-            }
-
-            for (shape in shapes) {
-                shape.shouldRerender = true
-            }
-            loaded = true
-        })
+        ServerWorldEvents.LOAD.register(ServerWorldEvents.Load { _, _ -> loadShapes() })
+        ClientPlayConnectionEvents.JOIN.register(ClientPlayConnectionEvents.Join { _, _, _ -> loadShapes() })
 
         ServerWorldEvents.UNLOAD.register(ServerWorldEvents.Unload { _, _ ->
+            logger.info("Unloading shapes and buffers")
+            quadVboMap.clear()
+            outlineVboMap.clear()
+            shapes.clear()
+            shapeBlockCache.clear()
+            overwriteProtection = false
+            loaded = false
+        })
+
+        ClientPlayConnectionEvents.DISCONNECT.register(ClientPlayConnectionEvents.Disconnect { _, _ ->
+            logger.info("Disconnected from server, clearing shapes and buffers")
             quadVboMap.clear()
             outlineVboMap.clear()
             shapes.clear()
@@ -324,5 +322,22 @@ object PhantomShapesClient : ClientModInitializer {
         quadVboMap.keys.removeIf { it !in shapeNames }
         outlineVboMap.keys.removeIf { it !in shapeNames }
         shapeBlockCache.keys.removeIf { it !in shapeNames }
+    }
+
+    private fun loadShapes() {
+        if (loaded) return
+        try {
+            shapes = SavedDataManager.loadShapes()
+            logger.info("Loaded ${shapes.size} shapes from file")
+        } catch (e: Exception) {
+            logger.error("Failed to load shapes from file", e)
+            logger.info("Locking the file to prevent overwriting it")
+            overwriteProtection = true
+        }
+
+        for (shape in shapes) {
+            shape.shouldRerender = true
+        }
+        loaded = true
     }
 }
